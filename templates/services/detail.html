@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container service-detail">
+    <div class="back-link">
+        <a href="{{ url_for('services.catalog') }}">Back to Catalog</a>
+    </div>
+    
+    <div class="detail-layout">
+        <div class="detail-image">
+            {% if service.image_url %}
+                <img src="{{ service.image_url }}" alt="{{ service.name }}">
+            {% else %}
+                <div class="detail-image-placeholder">
+                    <span>{{ service.category.replace('_', ' ').title() }}</span>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="detail-content">
+            <h1>{{ service.name }}</h1>
+            
+            <p class="category-badge">{{ service.category.replace('_', ' ').title() }}</p>
+            
+            <div class="price-section">
+                <p class="price">Starting at <strong>${{ "%.2f"|format(service.price_base) }}</strong></p>
+            </div>
+            
+            <div class="description">
+                <h3>Description</h3>
+                <p>{{ service.description }}</p>
+                {% if service.long_description %}
+                    <p>{{ service.long_description }}</p>
+                {% endif %}
+            </div>
+            
+            {% if service.service_options %}
+            <div class="options-section">
+                <h3>Options</h3>
+                <form id="add-to-cart-form">
+                    {% for option in service.service_options %}
+                    <div class="option-group">
+                        <label for="option-{{ option.id }}">{{ option.option_name }}</label>
+                        <select id="option-{{ option.id }}" name="option_{{ option.id }}" class="option-select">
+                            <option value="">Select {{ option.option_name }}</option>
+                            <!-- Options would be populated dynamically -->
+                        </select>
+                        {% if option.price_adjustment > 0 %}
+                            <span class="price-adjustment">+${{ "%.2f"|format(option.price_adjustment) }}</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </form>
+            </div>
+            {% endif %}
+            
+            <div class="quantity-section">
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1" class="quantity-input">
+            </div>
+            
+            <button class="btn btn-primary btn-large" onclick="addToCartDetail({{ service.id }}, '{{ service.name }}')">
+                Add to Cart
+            </button>
+            
+            <div class="service-meta">
+                <p><strong>Note:</strong> For custom orders or bulk quantities, please contact us for a quote.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addToCartDetail(serviceId, serviceName) {
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const options = {};
+    
+    // Collect selected options
+    document.querySelectorAll('.option-select').forEach(select => {
+        if (select.value) {
+            options[select.name] = select.value;
+        }
+    });
+    
+    fetch('{{ url_for("services.add_to_cart") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            service_id: serviceId,
+            quantity: quantity,
+            options: options
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Added to cart!');
+            setTimeout(() => {
+                window.location.href = '{{ url_for("services.view_cart") }}';
+            }, 1500);
+        }
+    });
+}
+</script>
+{% endblock %}

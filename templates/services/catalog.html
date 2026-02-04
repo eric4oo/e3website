@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="services-hero">
+    <h1>Custom Manufacturing Services</h1>
+    <p>Industrial Design, 3D Printing & Laser Engraving for Props and Low-Medium Volume Orders</p>
+</section>
+
+<section class="categories-filter">
+    <div class="container">
+        <h2>Browse Services</h2>
+        <div class="category-buttons">
+            <a href="{{ url_for('services.catalog') }}" 
+               class="category-btn {% if not selected_category %}active{% endif %}">
+                All Services
+            </a>
+            <a href="{{ url_for('services.catalog', category='industrial_design') }}" 
+               class="category-btn {% if selected_category == 'industrial_design' %}active{% endif %}">
+                Industrial Design
+            </a>
+            <a href="{{ url_for('services.catalog', category='3d_printing') }}" 
+               class="category-btn {% if selected_category == '3d_printing' %}active{% endif %}">
+                3D Printing
+            </a>
+            <a href="{{ url_for('services.catalog', category='laser_engraving') }}" 
+               class="category-btn {% if selected_category == 'laser_engraving' %}active{% endif %}">
+                Laser Engraving
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="services-grid">
+    <div class="container">
+        {% if services %}
+            <div class="grid">
+                {% for service in services %}
+                <div class="service-card">
+                    {% if service.image_url %}
+                        <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-image">
+                    {% else %}
+                        <div class="service-image-placeholder">
+                            <span>{{ service.category.replace('_', ' ').title() }}</span>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="service-info">
+                        <h3>{{ service.name }}</h3>
+                        <p class="description">{{ service.description }}</p>
+                        <p class="price">From ${{ "%.2f"|format(service.price_base) }}</p>
+                        
+                        <div class="service-actions">
+                            <a href="{{ url_for('services.service_detail', slug=service.slug) }}" 
+                               class="btn-secondary">View Details</a>
+                            <button class="btn-primary" onclick="addToCart({{ service.id }}, '{{ service.name }}')">
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No services available in this category.</p>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container empty-cart-page">
+    <div class="empty-state">
+        <h2>Your Cart is Empty</h2>
+        <p>You haven't added any items yet.</p>
+        <a href="{{ url_for('services.catalog') }}" class="btn btn-primary">Start Shopping</a>
+    </div>
+</div>
+{% endblock %}

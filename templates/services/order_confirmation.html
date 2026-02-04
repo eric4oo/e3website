@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container order-confirmation">
+    <div class="confirmation-success">
+        <div class="success-icon">✓</div>
+        <h1>Order Confirmed!</h1>
+        <p>Thank you for your order. We've received your payment.</p>
+    </div>
+    
+    <div class="order-details">
+        <div class="detail-section">
+            <h3>Order Information</h3>
+            <p>
+                <strong>Order Number:</strong> {{ order.order_number }}<br>
+                <strong>Date:</strong> {{ order.created_at.strftime('%B %d, %Y') }}<br>
+                <strong>Status:</strong> <span class="status-badge {{ order.status }}">{{ order.status.title() }}</span>
+            </p>
+        </div>
+        
+        <div class="detail-section">
+            <h3>Items Ordered</h3>
+            <table class="order-items-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in order.items %}
+                    <tr>
+                        <td>{{ item.service_name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ "%.2f"|format(item.unit_price) }}</td>
+                        <td>${{ "%.2f"|format(item.get_subtotal()) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <div class="order-total">
+                <strong>Total:</strong> <strong>${{ "%.2f"|format(order.total_amount) }}</strong>
+            </div>
+        </div>
+        
+        <div class="detail-section">
+            <h3>Shipping To</h3>
+            <p>
+                {{ order.customer_name }}<br>
+                {{ order.customer_address }}<br>
+                {{ order.customer_city }}, {{ order.customer_state }} {{ order.customer_zip }}<br>
+                <br>
+                <strong>Phone:</strong> {{ order.customer_phone }}<br>
+                <strong>Email:</strong> {{ order.customer_email }}
+            </p>
+        </div>
+        
+        <div class="detail-section info-box">
+            <h3>What's Next?</h3>
+            <ol>
+                <li>We'll process your order and prepare your items</li>
+                <li>You'll receive an email confirmation with tracking information</li>
+                <li>Our team will contact you with production timeline and updates</li>
+                <li>Your items will be shipped to the address above</li>
+            </ol>
+        </div>
+        
+        <div class="detail-section">
+            <h3>Questions?</h3>
+            <p>If you have any questions about your order, please contact us:</p>
+            <p>
+                <strong>Email:</strong> support@propsworks.com<br>
+                <strong>Phone:</strong> (555) 123-4567
+            </p>
+        </div>
+    </div>
+    
+    <div class="confirmation-actions">
+        <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Home</a>
+        <a href="{{ url_for('services.catalog') }}" class="btn btn-secondary">Continue Shopping</a>
+    </div>
+</div>
+
+<style>
+.order-confirmation {
+    margin: 2rem 0;
+}
+
+.confirmation-success {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.success-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.detail-section {
+    background-color: #f8f9fa;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #0066cc;
+}
+
+.detail-section h3 {
+    margin-top: 0;
+    color: #0066cc;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: white;
+}
+
+.status-badge.processing {
+    background-color: #ffc107;
+}
+
+.status-badge.completed {
+    background-color: #28a745;
+}
+
+.status-badge.pending {
+    background-color: #17a2b8;
+}
+
+.order-items-table {
+    width: 100%;
+    margin: 1rem 0;
+    border-collapse: collapse;
+}
+
+.order-items-table th,
+.order-items-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.order-items-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+.order-total {
+    text-align: right;
+    padding-top: 1rem;
+    font-size: 1.2rem;
+    border-top: 2px solid #ddd;
+}
+
+.info-box {
+    background-color: #e7f3ff;
+    border-left-color: #0066cc;
+}
+
+.info-box ol {
+    margin-left: 2rem;
+}
+
+.info-box li {
+    margin-bottom: 0.5rem;
+}
+
+.confirmation-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+    .confirmation-actions {
+        flex-direction: column;
+    }
+    
+    .confirmation-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}

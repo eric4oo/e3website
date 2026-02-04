@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <h1>Custom Manufacturing Services</h1>
+    <p>Professional Industrial Design, 3D Printing & Laser Engraving</p>
+    <p class="hero-subtitle">Specializing in Props and Low to Medium Volume Orders</p>
+    <a href="{{ url_for('services.catalog') }}" class="btn btn-primary btn-large">Browse Services</a>
+</div>
+
+<section class="services-showcase">
+    <h2>Our Services</h2>
+    <div class="showcase-grid">
+        <div class="service-showcase">
+            <div class="showcase-icon">🎨</div>
+            <h3>Industrial Design</h3>
+            <p>Custom design and engineering services for your unique concepts. From initial sketches to production-ready models.</p>
+            <a href="{{ url_for('services.catalog', category='industrial_design') }}">Explore</a>
+        </div>
+        <div class="service-showcase">
+            <div class="showcase-icon">🖨️</div>
+            <h3>3D Printing</h3>
+            <p>High-quality 3D printing services with various materials and finishes. Perfect for prototypes and production parts.</p>
+            <a href="{{ url_for('services.catalog', category='3d_printing') }}">Explore</a>
+        </div>
+        <div class="service-showcase">
+            <div class="showcase-icon">⚡</div>
+            <h3>Laser Engraving</h3>
+            <p>Precision laser engraving and cutting services. Add custom branding and details to your projects.</p>
+            <a href="{{ url_for('services.catalog', category='laser_engraving') }}">Explore</a>
+        </div>
+    </div>
+</section>
+
+<section class="why-us">
+    <h2>Why Choose PropsWorks?</h2>
+    <div class="features-grid">
+        <div class="feature">
+            <h4>Expert Team</h4>
+            <p>Experienced professionals in design and manufacturing</p>
+        </div>
+        <div class="feature">
+            <h4>Fast Turnaround</h4>
+            <p>Quick quotes and efficient production timelines</p>
+        </div>
+        <div class="feature">
+            <h4>Quality Guarantee</h4>
+            <p>High-quality results on every project</p>
+        </div>
+        <div class="feature">
+            <h4>Flexible Volumes</h4>
+            <p>From single prototypes to medium volume orders</p>
+        </div>
+    </div>
+</section>
+
+<section class="cta-section">
+    <h2>Ready to Start Your Project?</h2>
+    <p>Browse our services or contact us for a custom quote on your specific requirements.</p>
+    <a href="{{ url_for('services.catalog') }}" class="btn btn-primary btn-large">Get Started</a>
+</section>
+{% endblock %}

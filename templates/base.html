@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ title }} - Props & Manufacturing{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="{{ url_for('main.index') }}">PropsWorks</a>
+            </div>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                <li><a href="{{ url_for('services.catalog') }}">Services</a></li>
+                <li><a href="{{ url_for('main.about') }}">About</a></li>
+                <li><a href="{{ url_for('services.view_cart') }}" class="nav-cart">
+                    <span>Cart</span>
+                    <span class="cart-count" id="cart-count">0</span>
+                </a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-section">
+                <h4>Services</h4>
+                <ul>
+                    <li><a href="{{ url_for('services.catalog', category='industrial_design') }}">Industrial Design</a></li>
+                    <li><a href="{{ url_for('services.catalog', category='3d_printing') }}">3D Printing</a></li>
+                    <li><a href="{{ url_for('services.catalog', category='laser_engraving') }}">Laser Engraving</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Company</h4>
+                <ul>
+                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                    <li><a href="{{ url_for('main.about') }}">About</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Support</h4>
+                <p>Email: support@propsworks.com</p>
+                <p>Phone: (555) 123-4567</p>
+            </div>
+        </div>
+        <p class="copyright">&copy; 2026 PropsWorks. Specializing in Props & Low-Medium Volume Orders.</p>
+    </footer>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

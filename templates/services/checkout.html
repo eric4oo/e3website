@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container checkout-page">
+    <h1>Checkout</h1>
+    
+    <div class="checkout-layout">
+        <div class="checkout-form">
+            <form id="checkout-form">
+                <h3>Shipping Information</h3>
+                
+                <div class="form-group">
+                    <label for="customer_name">Full Name *</label>
+                    <input type="text" id="customer_name" name="customer_name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer_email">Email *</label>
+                    <input type="email" id="customer_email" name="customer_email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer_phone">Phone *</label>
+                    <input type="tel" id="customer_phone" name="customer_phone" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="customer_address">Address *</label>
+                    <input type="text" id="customer_address" name="customer_address" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="customer_city">City *</label>
+                        <input type="text" id="customer_city" name="customer_city" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer_state">State *</label>
+                        <input type="text" id="customer_state" name="customer_state" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer_zip">ZIP *</label>
+                        <input type="text" id="customer_zip" name="customer_zip" required>
+                    </div>
+                </div>
+                
+                <h3>Payment Information</h3>
+                <p>Secure payment processing powered by Square</p>
+                
+                <!-- Square Web Payments SDK container -->
+                <div id="sq-web-payments"></div>
+                
+                <button type="button" id="sq-submit" class="btn btn-primary btn-large">
+                    Pay Now
+                </button>
+            </form>
+        </div>
+        
+        <div class="checkout-summary">
+            <h3>Order Summary</h3>
+            {% if cart %}
+                {% for item in cart.items %}
+                <div class="summary-item">
+                    <span>{{ item.service.name }} x{{ item.quantity }}</span>
+                    <span>${{ "%.2f"|format(item.get_subtotal()) }}</span>
+                </div>
+                {% endfor %}
+                
+                <div class="summary-divider"></div>
+                
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span id="total-amount">${{ "%.2f"|format(cart.get_total()) }}</span>
+                </div>
+            {% endif %}
+            
+            <p class="info-note">Custom quotes available for bulk orders. Contact us for details.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Square Web Payments SDK -->
+<script src="https://web.squarecdn.com/v1/square.js"></script>
+
+<script>
+// Square configuration
+const SQUARE_APP_ID = '{{ square_app_id }}';
+const SQUARE_LOCATION_ID = '{{ square_location_id }}';
+const cartTotal = {{ cart_total_cents }};
+
+async function initializeSquare() {
+    const web = await Square.Web.init({
+        applicationId: SQUARE_APP_ID
+    });
+    
+    const payments = web.payments({ applicationId: SQUARE_APP_ID });
+    
+    // Create card payment method
+    const card = await payments.card();
+    await card.attach('#sq-web-payments');
+    
+    // Handle form submission
+    document.getElementById('sq-submit').addEventListener('click', async (e) => {
+        e.preventDefault();
+        
+        // Validate form
+        const form = document.getElementById('checkout-form');
+        if (!form.checkValidity()) {
+            alert('Please fill in all required fields');
+            return;
+        }
+        
+        const sourceResult = await payments.requestCardNonce();
+        
+        if (sourceResult.status === 'OK') {
+            const nonce = sourceResult.result.nonce;
+            processPayment(nonce);
+        } else {
+            const errorMessages = sourceResult.errors.map(e => e.message).join(', ');
+            alert('Error: ' + errorMessages);
+        }
+    });
+}
+
+function processPayment(nonce) {
+    const customerData = {
+        customer_name: document.getElementById('customer_name').value,
+        customer_email: document.getElementById('customer_email').value,
+        customer_phone: document.getElementById('customer_phone').value,
+        customer_address: document.getElementById('customer_address').value,
+        customer_city: document.getElementById('customer_city').value,
+        customer_state: document.getElementById('customer_state').value,
+        customer_zip: document.getElementById('customer_zip').value,
+        nonce: nonce,
+        amount: cartTotal
+    };
+    
+    fetch('{{ url_for("services.process_payment") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(customerData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification('Payment successful! Order confirmed.');
+            setTimeout(() => {
+                window.location.href = '{{ url_for("services.order_confirmation") }}?order_id=' + data.order_id;
+            }, 1500);
+        } else {
+            showNotification('Payment failed: ' + data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Payment processing error', 'error');
+    });
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initializeSquare);
+</script>
+{% endblock %}
