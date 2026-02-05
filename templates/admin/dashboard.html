@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropsWorks Admin - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+        
+        .admin-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 100vh;
+            gap: 0;
+        }
+        
+        .editor-panel {
+            background: white;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+        
+        .preview-panel {
+            background: #ecf0f1;
+            padding: 30px;
+            overflow-y: auto;
+            max-height: 100vh;
+            border-left: 1px solid #bdc3c7;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            color: #2c3e50;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.2);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .color-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .color-input-group input[type="color"] {
+            width: 50px;
+            height: 40px;
+            cursor: pointer;
+            padding: 2px;
+        }
+        
+        .color-input-group input[type="text"] {
+            flex: 1;
+        }
+        
+        .service-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .service-item h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .status-message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .preview-content {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        
+        .preview-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .preview-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .tab-btn {
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            color: #7f8c8d;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab-btn.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @media (max-width: 1200px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-panel {
+                border-left: none;
+                border-top: 1px solid #bdc3c7;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Editor Panel -->
+        <div class="editor-panel">
+            <div class="header">
+                <h1>Content Editor</h1>
+                <div class="header-actions">
+                    <button class="btn btn-primary" onclick="saveAllContent()">Save All</button>
+                    <a href="{{ url_for('admin.logout') }}" class="btn btn-danger">Logout</a>
+                </div>
+            </div>
+            
+            <div id="statusMessage" class="status-message"></div>
+            
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('general')">General</button>
+                <button class="tab-btn" onclick="switchTab('services')">Services</button>
+                <button class="tab-btn" onclick="switchTab('design')">Design</button>
+                <button class="tab-btn" onclick="switchTab('contact')">Contact</button>
+            </div>
+            
+            <!-- General Tab -->
+            <div id="general" class="tab-content active">
+                <div class="section">
+                    <div class="section-title">Site Information</div>
+                    
+                    <div class="form-group">
+                        <label>Site Title</label>
+                        <input type="text" id="site_title" placeholder="PropsWorks">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Site Tagline</label>
+                        <input type="text" id="site_tagline" placeholder="Custom Props & Manufacturing">
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">Hero Section</div>
+                    
+                    <div class="form-group">
+                        <label>Hero Title</label>
+                        <input type="text" id="hero_title" placeholder="Welcome to PropsWorks">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Hero Subtitle</label>
+                        <input type="text" id="hero_subtitle" placeholder="Professional Props and Manufacturing">
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="section-title">About Section</div>
+                    
+                    <div class="form-group">
+                        <label>About Title</label>
+                        <input type="text" id="about_title" placeholder="About PropsWorks">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>About Content</label>
+                        <textarea id="about_content" placeholder="Enter about content..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Services Tab -->
+            <div id="services" class="tab-content">
+                <div class="section">
+                    <div class="section-title">Service Management</div>
+                    <div id="servicesContainer"></div>
+                </div>
+            </div>
+            
+            <!-- Design Tab -->
+            <div id="design" class="tab-content">
+                <div class="section">
+                    <div class="section-title">Color Scheme</div>
+                    
+                    <div class="form-group">
+                        <label>Primary Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="color_primary">
+                            <input type="text" id="color_primary_hex" placeholder="#2c3e50">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Secondary Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="color_secondary">
+                            <input type="text" id="color_secondary_hex" placeholder="#3498db">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Accent Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="color_accent">
+                            <input type="text" id="color_accent_hex" placeholder="#e74c3c">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Background Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="color_background">
+                            <input type="text" id="color_background_hex" placeholder="#ecf0f1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Text Color</label>
+                        <div class="color-input-group">
+                            <input type="color" id="color_text">
+                            <input type="text" id="color_text_hex" placeholder="#2c3e50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contact Tab -->
+            <div id="contact" class="tab-content">
+                <div class="section">
+                    <div class="section-title">Contact Information</div>
+                    
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="contact_email" placeholder="info@propsworks.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="contact_phone" placeholder="(555) 123-4567">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Preview Panel -->
+        <div class="preview-panel">
+            <h2 style="margin-bottom: 20px; font-size: 18px;">Live Preview</h2>
+            
+            <div class="preview-content" id="previewContent">
+                <div class="preview-title" id="previewTitle">PropsWorks</div>
+                <div class="preview-text" style="margin-bottom: 20px;" id="previewTagline">Custom Props & Manufacturing</div>
+                
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #ecf0f1;">
+                
+                <div class="preview-title" id="previewHeroTitle">Welcome</div>
+                <div class="preview-text" id="previewHeroSubtitle">Professional services</div>
+                
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #ecf0f1;">
+                
+                <div class="preview-title" id="previewAboutTitle">About</div>
+                <div class="preview-text" id="previewAboutContent">About us content</div>
+                
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #ecf0f1;">
+                
+                <div class="preview-title">Colors</div>
+                <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
+                    <div style="width: 40px; height: 40px; border-radius: 4px; border: 1px solid #bdc3c7;" id="colorPrimary"></div>
+                    <div style="width: 40px; height: 40px; border-radius: 4px; border: 1px solid #bdc3c7;" id="colorSecondary"></div>
+                    <div style="width: 40px; height: 40px; border-radius: 4px; border: 1px solid #bdc3c7;" id="colorAccent"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let contentData = {};
+        
+        // Load content on page load
+        document.addEventListener('DOMContentLoaded', loadContent);
+        
+        async function loadContent() {
+            try {
+                const response = await fetch('{{ url_for("admin.get_content") }}');
+                contentData = await response.json();
+                populateForm();
+                updatePreview();
+            } catch (error) {
+                showStatus('Error loading content', 'error');
+            }
+        }
+        
+        function populateForm() {
+            // General fields
+            document.getElementById('site_title').value = contentData.site_title || '';
+            document.getElementById('site_tagline').value = contentData.site_tagline || '';
+            document.getElementById('hero_title').value = contentData.hero_title || '';
+            document.getElementById('hero_subtitle').value = contentData.hero_subtitle || '';
+            document.getElementById('about_title').value = contentData.about_title || '';
+            document.getElementById('about_content').value = contentData.about_content || '';
+            
+            // Colors
+            const colors = contentData.colors || {};
+            setColorInput('primary', colors.primary);
+            setColorInput('secondary', colors.secondary);
+            setColorInput('accent', colors.accent);
+            setColorInput('background', colors.background);
+            setColorInput('text', colors.text);
+            
+            // Contact
+            document.getElementById('contact_email').value = contentData.contact_email || '';
+            document.getElementById('contact_phone').value = contentData.contact_phone || '';
+            
+            // Services
+            populateServices();
+            
+            // Add change listeners
+            addChangeListeners();
+        }
+        
+        function setColorInput(colorName, colorValue) {
+            document.getElementById(`color_${colorName}`).value = colorValue || '#000000';
+            document.getElementById(`color_${colorName}_hex`).value = colorValue || '#000000';
+        }
+        
+        function populateServices() {
+            const container = document.getElementById('servicesContainer');
+            container.innerHTML = '';
+            
+            for (const [serviceId, service] of Object.entries(contentData.services || {})) {
+                const html = `
+                    <div class="service-item">
+                        <h3>${service.title}</h3>
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" value="${service.title}" onchange="updateService('${serviceId}', 'title', this.value)">
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea onchange="updateService('${serviceId}', 'description', this.value)">${service.description}</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Price ($)</label>
+                            <input type="number" value="${service.price}" onchange="updateService('${serviceId}', 'price', this.value)">
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            }
+        }
+        
+        function addChangeListeners() {
+            const inputs = document.querySelectorAll('#general input, #general textarea, #design input, #contact input');
+            inputs.forEach(input => {
+                input.addEventListener('change', updatePreview);
+                input.addEventListener('input', updatePreview);
+            });
+            
+            // Color inputs
+            document.querySelectorAll('input[type="color"]').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const hexInput = e.target.nextElementSibling;
+                    hexInput.value = e.target.value;
+                    updatePreview();
+                });
+            });
+            
+            document.querySelectorAll('input[type="text"][id*="hex"]').forEach(input => {
+                input.addEventListener('change', (e) => {
+                    const colorInput = e.target.previousElementSibling;
+                    colorInput.value = e.target.value;
+                    updatePreview();
+                });
+            });
+        }
+        
+        function updatePreview() {
+            document.getElementById('previewTitle').textContent = document.getElementById('site_title').value || 'PropsWorks';
+            document.getElementById('previewTagline').textContent = document.getElementById('site_tagline').value || 'Custom Props & Manufacturing';
+            document.getElementById('previewHeroTitle').textContent = document.getElementById('hero_title').value || 'Welcome';
+            document.getElementById('previewHeroSubtitle').textContent = document.getElementById('hero_subtitle').value || 'Professional services';
+            document.getElementById('previewAboutTitle').textContent = document.getElementById('about_title').value || 'About';
+            document.getElementById('previewAboutContent').textContent = document.getElementById('about_content').value || 'About content';
+            
+            // Update color preview
+            document.getElementById('colorPrimary').style.backgroundColor = document.getElementById('color_primary').value;
+            document.getElementById('colorSecondary').style.backgroundColor = document.getElementById('color_secondary').value;
+            document.getElementById('colorAccent').style.backgroundColor = document.getElementById('color_accent').value;
+        }
+        
+        async function updateService(serviceId, field, value) {
+            contentData.services[serviceId][field] = isNaN(value) ? value : parseInt(value);
+            updatePreview();
+        }
+        
+        async function saveAllContent() {
+            const updatedContent = {
+                ...contentData,
+                site_title: document.getElementById('site_title').value,
+                site_tagline: document.getElementById('site_tagline').value,
+                hero_title: document.getElementById('hero_title').value,
+                hero_subtitle: document.getElementById('hero_subtitle').value,
+                about_title: document.getElementById('about_title').value,
+                about_content: document.getElementById('about_content').value,
+                contact_email: document.getElementById('contact_email').value,
+                contact_phone: document.getElementById('contact_phone').value,
+                colors: {
+                    primary: document.getElementById('color_primary').value,
+                    secondary: document.getElementById('color_secondary').value,
+                    accent: document.getElementById('color_accent').value,
+                    background: document.getElementById('color_background').value,
+                    text: document.getElementById('color_text').value
+                }
+            };
+            
+            try {
+                const response = await fetch('{{ url_for("admin.save_all_content") }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedContent)
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showStatus('Content saved successfully!', 'success');
+                    contentData = updatedContent;
+                } else {
+                    showStatus('Error saving content', 'error');
+                }
+            } catch (error) {
+                showStatus('Error saving content: ' + error.message, 'error');
+            }
+        }
+        
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        function showStatus(message, type) {
+            const element = document.getElementById('statusMessage');
+            element.textContent = message;
+            element.className = `status-message ${type}`;
+            
+            setTimeout(() => {
+                element.className = 'status-message';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

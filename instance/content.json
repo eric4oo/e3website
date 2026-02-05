@@ -1,0 +1,35 @@
+{
+  "site_title": "PropsWorks",
+  "site_tagline": "Custom Props & Low-Volume Manufacturing",
+  "hero_title": "Welcome to PropsWorks",
+  "hero_subtitle": "Professional Props and Manufacturing Services",
+  "about_title": "About PropsWorks",
+  "about_content": "We specialize in creating custom props and providing low-volume manufacturing services.",
+  "services": {
+    "industrial_design": {
+      "title": "Industrial Design",
+      "description": "Custom industrial design services",
+      "price": 5000
+    },
+    "3d_printing": {
+      "title": "3D Printing",
+      "description": "High-quality 3D printing services",
+      "price": 1000
+    },
+    "laser_engraving": {
+      "title": "Laser Engraving",
+      "description": "Precision laser engraving services",
+      "price": 500
+    }
+  },
+  "colors": {
+    "primary": "#2c3e50",
+    "secondary": "#3498db",
+    "accent": "#e74c3c",
+    "background": "#ecf0f1",
+    "text": "#2c3e50"
+  },
+  "contact_email": "info@propsworks.com",
+  "contact_phone": "(555) 123-4567",
+  "last_updated": "2026-02-05T09:09:39.354966"
+}
