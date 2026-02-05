@@ -155,6 +155,28 @@ docker-compose up
 # Visit http://localhost:8000
 ```
 
+### Admin Panel (Content Management)
+
+Access the interactive admin panel to edit all website content without code:
+
+```bash
+# After starting the server, visit:
+http://localhost:5000/admin/login
+
+# Default password: admin123
+# (Change in .env: ADMIN_PASSWORD=your_password)
+```
+
+**Admin Panel Features:**
+- Edit site title, tagline, and taglines
+- Manage service descriptions and prices
+- Customize color scheme
+- Update contact information
+- Live preview of changes
+- All changes auto-saved to JSON
+
+For detailed admin panel documentation, see [ADMIN_PANEL.md](./ADMIN_PANEL.md)
+
 ## 📖 Usage
 
 ### Adding Services to Catalog
