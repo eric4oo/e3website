@@ -26,6 +26,7 @@
                 <li><a href="{{ url_for('main.index') }}">Home</a></li>
                 <li><a href="{{ url_for('services.catalog') }}">Services</a></li>
                 <li><a href="{{ url_for('main.about') }}">About</a></li>
+                <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
                 <li><a href="{{ url_for('services.view_cart') }}" class="nav-cart">
                     <span>Cart</span>
                     <span class="cart-count" id="cart-count">0</span>
@@ -53,13 +54,12 @@
                 <ul>
                     <li><a href="{{ url_for('main.index') }}">Home</a></li>
                     <li><a href="{{ url_for('main.about') }}">About</a></li>
-                    <li><a href="#">Contact</a></li>
+                    <li><a href="{{ url_for('main.contact') }}">Contact</a></li>
                 </ul>
             </div>
             <div class="footer-section">
                 <h4>Support</h4>
                 <p>Email: {{ content.contact_email if content else 'support@propsworks.com' }}</p>
-                <p>Phone: {{ content.contact_phone if content else '(555) 123-4567' }}</p>
             </div>
         </div>
         <p class="copyright">&copy; 2026 PropsWorks. Specializing in Props & Low-Medium Volume Orders.</p>

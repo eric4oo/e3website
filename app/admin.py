@@ -11,7 +11,7 @@ from datetime import datetime
 from werkzeug.utils import secure_filename
 from slugify import slugify
 from app import db
-from app.models import Service
+from app.models import Service, Category
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -42,7 +42,11 @@ def init_content_file():
             'hero_title': 'Welcome to PropsWorks',
             'hero_subtitle': 'Professional Props and Manufacturing Services',
             'about_title': 'About PropsWorks',
-            'about_content': 'We specialize in creating custom props and providing low-volume manufacturing services.',
+            'about_content': 'PropsWorks specializes in providing professional manufacturing services for creative professionals, filmmakers, prop makers, and businesses who need high-quality custom-made items.',
+            'about_services': 'Industrial Design: Expert design and engineering for your concepts, from sketches to production-ready models\n3D Printing: High-quality 3D printing with various materials and finishing options\nLaser Engraving: Precision laser engraving and cutting for customization and branding',
+            'about_why': 'Expert team with years of manufacturing experience\nFast turnaround times and responsive service\nQuality guaranteed on every project\nFlexible for single prototypes to medium volume orders\nCompetitive pricing and custom quotes',
+            'about_perfect_for': 'Film and TV production props\nTheater and stage productions\nCustom merchandise and promotional items\nPrototype development and testing\nLimited edition product runs\nPersonalized gifts and awards',
+            'about_process': 'Consultation: Discuss your project requirements and vision\nDesign: Create or refine designs for your specifications\nPrototyping: Develop prototypes for approval and testing\nProduction: Manufacture to your exact specifications\nDelivery: Ship finished products to your location',
             'services': {
                 'industrial_design': {
                     'title': 'Industrial Design',
@@ -68,7 +72,8 @@ def init_content_file():
                 'text': '#2c3e50'
             },
             'contact_email': 'info@propsworks.com',
-            'contact_phone': '(555) 123-4567',
+            'contact_website': 'www.propsworks.com',
+            'instagram_handle': '',
             'last_updated': datetime.now().isoformat()
         }
         os.makedirs(os.path.dirname(CONTENT_FILE), exist_ok=True)
@@ -197,25 +202,232 @@ def get_preview_data():
     """Get content data for live preview."""
     return jsonify(load_content())
 
-# ==================== ITEM MANAGEMENT ROUTES ====================
+# ==================== CATEGORY MANAGEMENT ROUTES ====================
+
+@admin_bp.route('/api/categories')
+@login_required
+def get_categories():
+    """Get all categories with hierarchy."""
+    root_categories = Category.query.filter_by(parent_id=None).order_by(Category.order).all()
+    return jsonify([cat.to_dict(include_children=True) for cat in root_categories])
+
+
+@admin_bp.route('/api/categories', methods=['POST'])
+@login_required
+def create_category():
+    """Create a new category."""
+    try:
+        data = request.get_json()
+        
+        if not data.get('name'):
+            return jsonify({'success': False, 'error': 'Name is required'}), 400
+        
+        slug = slugify(data['name'])
+        
+        if Category.query.filter_by(slug=slug).first():
+            return jsonify({'success': False, 'error': 'Category with this name already exists'}), 400
+        
+        category = Category(
+            name=data['name'],
+            slug=slug,
+            parent_id=data.get('parent_id'),
+            description=data.get('description', ''),
+            order=data.get('order', 0),
+            is_active=data.get('is_active', True)
+        )
+        
+        db.session.add(category)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Category "{category.name}" created successfully',
+            'category': category.to_dict()
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+@admin_bp.route('/api/categories/<int:category_id>', methods=['PUT'])
+@login_required
+def update_category(category_id):
+    """Update a category."""
+    try:
+        category = Category.query.get_or_404(category_id)
+        data = request.get_json()
+        
+        if 'name' in data:
+            category.name = data['name']
+            category.slug = slugify(data['name'])
+        if 'parent_id' in data:
+            # Prevent a category from being its own parent
+            if data['parent_id'] == category_id:
+                return jsonify({'success': False, 'error': 'A category cannot be its own parent'}), 400
+            category.parent_id = data['parent_id']
+        if 'description' in data:
+            category.description = data['description']
+        if 'order' in data:
+            category.order = data['order']
+        if 'is_active' in data:
+            category.is_active = data['is_active']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Category "{category.name}" updated successfully',
+            'category': category.to_dict()
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+@admin_bp.route('/api/categories/<int:category_id>', methods=['DELETE'])
+@login_required
+def delete_category(category_id):
+    """Delete a category."""
+    try:
+        category = Category.query.get_or_404(category_id)
+        
+        # Check if category has items
+        if category.services:
+            return jsonify({
+                'success': False,
+                'error': f'Cannot delete category with {len(category.services)} item(s). Please reassign items first.'
+            }), 400
+        
+        # Check if category has sub-categories
+        if category.children:
+            return jsonify({
+                'success': False,
+                'error': f'Cannot delete category with {len(category.children)} sub-category(ies). Please delete sub-categories first.'
+            }), 400
+        
+        category_name = category.name
+        db.session.delete(category)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Category "{category_name}" deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
 
 @admin_bp.route('/items')
 @login_required
 def manage_items():
     """Item management page."""
-    categories = ['industrial_design', '3d_printing', 'laser_engraving']
-    return render_template('admin/items.html', categories=categories)
+    categories = Category.query.filter_by(parent_id=None).order_by(Category.order).all()
+    return render_template('admin/items.html', categories=[cat.to_dict(include_children=True) for cat in categories])
+
+@admin_bp.route('/categories')
+@login_required
+def manage_categories():
+    """Category management page."""
+    return render_template('admin/categories.html')
+
+
+@admin_bp.route('/about')
+@login_required
+def edit_about():
+    """Edit about page content."""
+    content = load_content()
+    return render_template('admin/about.html', content=content)
+
+
+@admin_bp.route('/api/content/about', methods=['PUT'])
+@login_required
+def update_about_content():
+    """Update about page content."""
+    try:
+        content = load_content()
+        data = request.get_json()
+        
+        # Update about content fields
+        if 'about_title' in data:
+            content['about_title'] = data['about_title']
+        if 'about_content' in data:
+            content['about_content'] = data['about_content']
+        if 'about_description' in data:
+            content['about_description'] = data['about_description']
+        if 'about_services' in data:
+            content['about_services'] = data['about_services']
+        if 'about_why' in data:
+            content['about_why'] = data['about_why']
+        if 'about_perfect_for' in data:
+            content['about_perfect_for'] = data['about_perfect_for']
+        if 'about_process' in data:
+            content['about_process'] = data['about_process']
+        if 'contact_email' in data:
+            content['contact_email'] = data['contact_email']
+        if 'contact_website' in data:
+            content['contact_website'] = data['contact_website']
+        if 'instagram_handle' in data:
+            content['instagram_handle'] = data['instagram_handle']
+        
+        save_content(content)
+        return jsonify({'success': True, 'message': 'About page content updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+@admin_bp.route('/contact')
+@login_required
+def edit_contact():
+    """Edit contact page content."""
+    content = load_content()
+    return render_template('admin/contact.html', content=content)
+
+
+@admin_bp.route('/api/content/contact', methods=['PUT'])
+@login_required
+def update_contact_content():
+    """Update contact page content."""
+    try:
+        content = load_content()
+        data = request.get_json()
+        
+        # Update contact content fields
+        if 'contact_title' in data:
+            content['contact_title'] = data['contact_title']
+        if 'contact_intro' in data:
+            content['contact_intro'] = data['contact_intro']
+        if 'contact_message' in data:
+            content['contact_message'] = data['contact_message']
+        if 'contact_email' in data:
+            content['contact_email'] = data['contact_email']
+        if 'contact_website' in data:
+            content['contact_website'] = data['contact_website']
+        if 'instagram_handle' in data:
+            content['instagram_handle'] = data['instagram_handle']
+        
+        save_content(content)
+        return jsonify({'success': True, 'message': 'Contact page content updated successfully'}), 200
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 400
 
 
 @admin_bp.route('/api/items')
 @login_required
 def get_items():
     """Get all items with optional category filter."""
-    category = request.args.get('category')
+    category_id = request.args.get('category_id')
     query = Service.query
     
-    if category:
-        query = query.filter_by(category=category)
+    if category_id:
+        try:
+            category_id = int(category_id)
+            query = query.filter_by(category_id=category_id)
+        except (ValueError, TypeError):
+            pass
     
     items = query.all()
     return jsonify([{
@@ -223,13 +435,18 @@ def get_items():
         'name': item.name,
         'description': item.description,
         'price_base': item.price_base,
-        'category': item.category,
+        'category_id': item.category_id,
+        'sub_category_id': item.sub_category_id,
+        'category_name': item.category_obj.name if item.category_obj else None,
+        'sub_category_name': item.sub_category_obj.name if item.sub_category_obj else None,
         'image_url': item.image_url,
         'is_active': item.is_active,
         'media_gallery': item.media_gallery or [],
         'bulk_pricing': item.bulk_pricing or [],
+        'variants': item.variants or [],
         'created_at': item.created_at.isoformat()
     } for item in items])
+
 
 
 @admin_bp.route('/api/items/<int:item_id>')
@@ -244,13 +461,18 @@ def get_item(item_id):
         'description': item.description,
         'long_description': item.long_description,
         'price_base': item.price_base,
-        'category': item.category,
+        'category_id': item.category_id,
+        'sub_category_id': item.sub_category_id,
+        'category_name': item.category_obj.name if item.category_obj else None,
+        'sub_category_name': item.sub_category_obj.name if item.sub_category_obj else None,
         'image_url': item.image_url,
         'is_active': item.is_active,
         'media_gallery': item.media_gallery or [],
         'bulk_pricing': item.bulk_pricing or [],
+        'variants': item.variants or [],
         'created_at': item.created_at.isoformat()
     })
+
 
 
 @admin_bp.route('/api/items', methods=['POST'])
@@ -261,7 +483,7 @@ def create_item():
         data = request.get_json()
         
         # Validate required fields
-        if not data.get('name') or not data.get('category'):
+        if not data.get('name') or not data.get('category_id'):
             return jsonify({'success': False, 'error': 'Name and category are required'}), 400
         
         # Create slug from name
@@ -271,17 +493,26 @@ def create_item():
         if Service.query.filter_by(slug=slug).first():
             return jsonify({'success': False, 'error': 'Item with this name already exists'}), 400
         
+        # Handle optional price (None = Contact for Quote)
+        price_base = data.get('price_base')
+        if price_base == '' or price_base is None:
+            price_base = None
+        else:
+            price_base = float(price_base)
+        
         item = Service(
             name=data['name'],
             slug=slug,
             description=data.get('description', ''),
             long_description=data.get('long_description', ''),
-            price_base=float(data.get('price_base', 0)),
-            category=data['category'],
+            price_base=price_base,
+            category_id=int(data['category_id']),
+            sub_category_id=int(data['sub_category_id']) if data.get('sub_category_id') else None,
             image_url=data.get('image_url', ''),
             is_active=data.get('is_active', True),
             media_gallery=data.get('media_gallery', []),
-            bulk_pricing=data.get('bulk_pricing', [])
+            bulk_pricing=data.get('bulk_pricing', []),
+            variants=data.get('variants', [])
         )
         
         db.session.add(item)
@@ -314,9 +545,15 @@ def update_item(item_id):
         if 'long_description' in data:
             item.long_description = data['long_description']
         if 'price_base' in data:
-            item.price_base = float(data['price_base'])
-        if 'category' in data:
-            item.category = data['category']
+            price_base = data['price_base']
+            if price_base == '' or price_base is None:
+                item.price_base = None
+            else:
+                item.price_base = float(price_base)
+        if 'category_id' in data:
+            item.category_id = int(data['category_id'])
+        if 'sub_category_id' in data:
+            item.sub_category_id = int(data['sub_category_id']) if data['sub_category_id'] else None
         if 'image_url' in data:
             item.image_url = data['image_url']
         if 'is_active' in data:
@@ -325,6 +562,8 @@ def update_item(item_id):
             item.media_gallery = data['media_gallery']
         if 'bulk_pricing' in data:
             item.bulk_pricing = data['bulk_pricing']
+        if 'variants' in data:
+            item.variants = data['variants']
         
         db.session.commit()
         

@@ -40,21 +40,31 @@
                         <img src="{{ service.image_url }}" alt="{{ service.name }}" class="service-image">
                     {% else %}
                         <div class="service-image-placeholder">
-                            <span>{{ service.category.replace('_', ' ').title() }}</span>
+                            <span>{{ service.category_obj.name if service.category_obj else 'Service' }}</span>
                         </div>
                     {% endif %}
                     
                     <div class="service-info">
                         <h3>{{ service.name }}</h3>
                         <p class="description">{{ service.description }}</p>
-                        <p class="price">From ${{ "%.2f"|format(service.price_base) }}</p>
+                        {% if service.price_base %}
+                            <p class="price">From ${{ "%.2f"|format(service.price_base) }}</p>
+                        {% else %}
+                            <p class="price" style="color: #e67e22;">Contact for Quote</p>
+                        {% endif %}
                         
                         <div class="service-actions">
                             <a href="{{ url_for('services.service_detail', slug=service.slug) }}" 
                                class="btn-secondary">View Details</a>
-                            <button class="btn-primary" onclick="addToCart({{ service.id }}, '{{ service.name }}')">
-                                Add to Cart
-                            </button>
+                            {% if service.price_base %}
+                                <button class="btn-primary" onclick="addToCart({{ service.id }}, '{{ service.name }}')">
+                                    Add to Cart
+                                </button>
+                            {% else %}
+                                <button class="btn-secondary" style="background: #e67e22;" onclick="contactForQuote('{{ service.name }}')">
+                                    Contact for Quote
+                                </button>
+                            {% endif %}
                         </div>
                     </div>
                 </div>

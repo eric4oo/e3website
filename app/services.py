@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template, request, jsonify, make_response
-from app.models import Service, Cart, CartItem, Order, OrderItem, db
+from app.models import Service, Cart, CartItem, Order, OrderItem, Category, db
 from app.payment import get_square_processor
 import uuid
 from datetime import datetime
@@ -8,12 +8,30 @@ import os
 
 services_bp = Blueprint('services', __name__, url_prefix='/services')
 
-# Service categories
-CATEGORIES = {
-    'industrial_design': 'Industrial Design',
-    '3d_printing': '3D Printing',
-    'laser_engraving': 'Laser Engraving'
-}
+def load_categories():
+    """Load categories from database."""
+    try:
+        root_categories = Category.query.filter_by(parent_id=None, is_active=True).order_by(Category.order).all()
+        categories = {}
+        for cat in root_categories:
+            categories[cat.id] = {
+                'id': cat.id,
+                'name': cat.name,
+                'slug': cat.slug,
+                'children': {}
+            }
+            if cat.children:
+                for subcat in sorted(cat.children, key=lambda x: x.order):
+                    if subcat.is_active:
+                        categories[cat.id]['children'][subcat.id] = {
+                            'id': subcat.id,
+                            'name': subcat.name,
+                            'slug': subcat.slug
+                        }
+        return categories
+    except Exception:
+        # Fallback if database is not initialized
+        return {}
 
 def load_content():
     """Load content from JSON file."""
@@ -27,18 +45,23 @@ def load_content():
 @services_bp.route('/')
 def catalog():
     """Display all services/products."""
-    category = request.args.get('category')
+    category_id = request.args.get('category_id')
     content = load_content()
+    categories = load_categories()
     
-    if category and category in CATEGORIES:
-        services = Service.query.filter_by(category=category, is_active=True).all()
+    if category_id:
+        try:
+            category_id = int(category_id)
+            services = Service.query.filter_by(category_id=category_id, is_active=True).all()
+        except (ValueError, TypeError):
+            services = Service.query.filter_by(is_active=True).all()
     else:
         services = Service.query.filter_by(is_active=True).all()
     
     return render_template('services/catalog.html', 
                          services=services,
-                         categories=CATEGORIES,
-                         selected_category=category,
+                         categories=categories,
+                         selected_category=category_id,
                          content=content)
 
 

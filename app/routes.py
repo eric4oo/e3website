@@ -24,6 +24,12 @@ def about():
     content = load_content()
     return render_template('about.html', title='About', content=content)
 
+@main_bp.route('/contact')
+def contact():
+    """Contact page route."""
+    content = load_content()
+    return render_template('contact.html', title='Contact', content=content)
+
 @main_bp.route('/health')
 def health():
     """Health check endpoint for deployment monitoring."""

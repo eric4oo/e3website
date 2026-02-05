@@ -48,8 +48,15 @@ When you first load the Item Management page, you'll see:
 - **Long Description** - Detailed description, specifications, features (optional)
 
 #### Pricing
-- **Base Price ($)*** - The standard price for this item
+- **Contact for Quote** - Check this if you want customers to contact you for pricing instead of adding to cart
+- **Base Price ($)** - The standard price for this item (leave empty if using Contact for Quote)
 - **Image URL** - Link to the main product/service image
+
+**When to Use "Contact for Quote":**
+- Custom projects with pricing that varies by specifications
+- Enterprise/bulk orders that need custom quotes
+- Services that require consultation before pricing
+- Limited-edition or made-to-order items
 
 #### Bulk Pricing Tiers (Optional)
 Configure reduced pricing for large orders:
@@ -69,7 +76,40 @@ Tier 3: Min Quantity: 50, Price: $350
 When a customer orders 10+ items, they automatically get the $450 price.
 When ordering 25+, they get $400, etc.
 
-#### Media Gallery
+**Note:** Bulk pricing is not available for items using "Contact for Quote"
+
+#### Product Variants (Optional)
+Add different versions of the same product with separate pricing:
+
+1. Click **"Add Variant"** button
+2. For each variant, specify:
+   - **Variant Name*** - The version identifier (e.g., "Small", "Large", "Red", "Blue")
+   - **Contact for Quote** - Optionally check this for individual variants (different from base item)
+   - **Price ($)** - The price for this specific variant (leave empty if using Contact for Quote)
+   - **Description/Notes** - Optional details about this variant (dimensions, materials, colors, etc.)
+   - **SKU/Item Code** - Optional inventory tracking identifier
+   - **Available for purchase** - Checkbox to enable/disable this variant
+
+**Example - T-Shirt Product:**
+```
+Variant 1: Small - $25 - Description: Fits XS-S
+Variant 2: Medium - $25 - Description: Fits M-L  
+Variant 3: Large - $27 - Description: Fits XL-XXL
+Variant 4: Extra Large - Contact for Quote - Custom sizing available
+```
+
+**Example - Custom Brackets:**
+```
+Variant 1: Steel - $150 - Description: Powder coated steel, 5 day turnaround
+Variant 2: Aluminum - $120 - Description: Anodized aluminum, 3 day turnaround
+Variant 3: Stainless Steel - Contact for Quote - Food grade, custom specifications
+```
+
+**When to Use Variants:**
+- Different sizes of the same item (may have different prices)
+- Different colors available (may have different prices)
+- Different materials with different costs
+- Mix of standard options and custom/quote options
 Upload photos and videos to showcase your items:
 
 1. Click the upload area or drag & drop files
@@ -241,6 +281,22 @@ Each item stores the following information:
     {
       "min_quantity": 10,
       "price": 450
+    }
+  ],
+  "variants": [
+    {
+      "name": "Small",
+      "price": 100,
+      "description": "5x5 inches",
+      "sku": "DESIGN-SMALL",
+      "is_available": true
+    },
+    {
+      "name": "Large",
+      "price": 150,
+      "description": "10x10 inches",
+      "sku": "DESIGN-LARGE",
+      "is_available": true
     }
   ],
   "created_at": "2024-01-01T12:00:00"

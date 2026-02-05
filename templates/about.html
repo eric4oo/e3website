@@ -10,45 +10,95 @@
         
         <h3>Our Services</h3>
         <ul>
-            <li><strong>Industrial Design:</strong> Expert design and engineering for your concepts, from sketches to production-ready models</li>
-            <li><strong>3D Printing:</strong> High-quality 3D printing with various materials and finishing options</li>
-            <li><strong>Laser Engraving:</strong> Precision laser engraving and cutting for customization and branding</li>
+            {% if content and content.get('about_services') %}
+                {% for service_line in content.about_services.strip().split('\n') %}
+                    {% if ':' in service_line %}
+                        {% set parts = service_line.split(':', 1) %}
+                        <li><strong>{{ parts[0].strip() }}:</strong> {{ parts[1].strip() }}</li>
+                    {% else %}
+                        <li>{{ service_line.strip() }}</li>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <li><strong>Industrial Design:</strong> Expert design and engineering for your concepts, from sketches to production-ready models</li>
+                <li><strong>3D Printing:</strong> High-quality 3D printing with various materials and finishing options</li>
+                <li><strong>Laser Engraving:</strong> Precision laser engraving and cutting for customization and branding</li>
+            {% endif %}
         </ul>
         
         <h3>Why Choose PropsWorks?</h3>
         <ul>
-            <li>Expert team with years of manufacturing experience</li>
-            <li>Fast turnaround times and responsive service</li>
-            <li>Quality guaranteed on every project</li>
-            <li>Flexible for single prototypes to medium volume orders</li>
-            <li>Competitive pricing and custom quotes</li>
+            {% if content and content.get('about_why') %}
+                {% for why_line in content.about_why.strip().split('\n') %}
+                    {% if why_line.strip() %}
+                        <li>{{ why_line.strip() }}</li>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <li>Expert team with years of manufacturing experience</li>
+                <li>Fast turnaround times and responsive service</li>
+                <li>Quality guaranteed on every project</li>
+                <li>Flexible for single prototypes to medium volume orders</li>
+                <li>Competitive pricing and custom quotes</li>
+            {% endif %}
         </ul>
         
         <h3>Perfect For</h3>
         <ul>
-            <li>Film and TV production props</li>
-            <li>Theater and stage productions</li>
-            <li>Custom merchandise and promotional items</li>
-            <li>Prototype development and testing</li>
-            <li>Limited edition product runs</li>
-            <li>Personalized gifts and awards</li>
+            {% if content and content.get('about_perfect_for') %}
+                {% for item_line in content.about_perfect_for.strip().split('\n') %}
+                    {% if item_line.strip() %}
+                        <li>{{ item_line.strip() }}</li>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <li>Film and TV production props</li>
+                <li>Theater and stage productions</li>
+                <li>Custom merchandise and promotional items</li>
+                <li>Prototype development and testing</li>
+                <li>Limited edition product runs</li>
+                <li>Personalized gifts and awards</li>
+            {% endif %}
         </ul>
         
         <h3>Our Process</h3>
         <ol>
-            <li><strong>Consultation:</strong> Discuss your project requirements and vision</li>
-            <li><strong>Design:</strong> Create or refine designs for your specifications</li>
-            <li><strong>Prototyping:</strong> Develop prototypes for approval and testing</li>
-            <li><strong>Production:</strong> Manufacture to your exact specifications</li>
-            <li><strong>Delivery:</strong> Ship finished products to your location</li>
+            {% if content and content.get('about_process') %}
+                {% for process_line in content.about_process.strip().split('\n') %}
+                    {% if ':' in process_line %}
+                        {% set parts = process_line.split(':', 1) %}
+                        <li><strong>{{ parts[0].strip() }}:</strong> {{ parts[1].strip() }}</li>
+                    {% elif process_line.strip() %}
+                        <li>{{ process_line.strip() }}</li>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                <li><strong>Consultation:</strong> Discuss your project requirements and vision</li>
+                <li><strong>Design:</strong> Create or refine designs for your specifications</li>
+                <li><strong>Prototyping:</strong> Develop prototypes for approval and testing</li>
+                <li><strong>Production:</strong> Manufacture to your exact specifications</li>
+                <li><strong>Delivery:</strong> Ship finished products to your location</li>
+            {% endif %}
         </ol>
         
         <h3>Contact Us</h3>
         <p>For custom quotes, bulk orders, or specific project requirements:</p>
         <ul>
-            <li>Email: <strong>info@propsworks.com</strong></li>
-            <li>Phone: <strong>(555) 123-4567</strong></li>
-            <li>Web: <strong>www.propsworks.com</strong></li>
+            {% if content and content.get('contact_email') %}
+                <li>Email: <strong>{{ content.contact_email }}</strong></li>
+            {% else %}
+                <li>Email: <strong>info@propsworks.com</strong></li>
+            {% endif %}
+            {% if content and content.get('contact_phone') %}
+                <li>Phone: <strong>{{ content.contact_phone }}</strong></li>
+            {% else %}
+                <li>Phone: <strong>(555) 123-4567</strong></li>
+            {% endif %}
+            {% if content and content.get('contact_website') %}
+                <li>Web: <strong>{{ content.contact_website }}</strong></li>
+            {% else %}
+                <li>Web: <strong>www.propsworks.com</strong></li>
+            {% endif %}
         </ul>
     </div>
 </section>

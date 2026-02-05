@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="contact-section">
+    <h1>{{ content.contact_title if content else 'Get In Touch' }}</h1>
+    
+    <div class="contact-content">
+        <p class="contact-intro">{{ content.contact_intro if content else 'Have a project in mind? We would love to hear from you!' }}</p>
+        
+        <div class="contact-container">
+            <!-- Contact Methods -->
+            <div class="contact-methods">
+                <h2>Contact Information</h2>
+                
+                <div class="contact-item">
+                    <h3>📧 Email</h3>
+                    <p>
+                        <a href="mailto:{{ content.contact_email if content else 'info@propsworks.com' }}">
+                            {{ content.contact_email if content else 'info@propsworks.com' }}
+                        </a>
+                    </p>
+                    <small>We typically respond within 24 business hours</small>
+                </div>
+                
+                <div class="contact-item">
+                    <h3>🌐 Website</h3>
+                    <p>
+                        <a href="https://{{ content.contact_website if content else 'www.propsworks.com' }}" target="_blank">
+                            {{ content.contact_website if content else 'www.propsworks.com' }}
+                        </a>
+                    </p>
+                    <small>Visit our main website for more information</small>
+                </div>
+
+                {% if content and content.get('instagram_handle') %}
+                <div class="contact-item">
+                    <h3>📸 Instagram</h3>
+                    <p>
+                        <a href="https://instagram.com/{{ content.instagram_handle }}" target="_blank">
+                            @{{ content.instagram_handle }}
+                        </a>
+                    </p>
+                    <small>Follow us on Instagram for behind-the-scenes and project updates</small>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Contact Info Box -->
+            <div class="contact-info-box">
+                <h2>What We're Here For</h2>
+                <p>{{ content.contact_message if content else 'For inquiries and quotes, please contact us using the information above. We are here to help with any questions or custom project needs.' }}</p>
+                
+                <div class="service-types">
+                    <h3>Service Inquiries:</h3>
+                    <ul>
+                        <li>🎨 Industrial Design consultations</li>
+                        <li>🖨️ 3D Printing project quotes</li>
+                        <li>⚡ Laser Engraving services</li>
+                        <li>📦 Bulk order pricing</li>
+                        <li>🛠️ Custom manufacturing requests</li>
+                    </ul>
+                </div>
+
+                <div class="contact-note">
+                    <p><strong>Need a quick quote?</strong> Include details about your project, desired timeline, and any specific requirements in your message to help us provide accurate pricing faster.</p>
+                </div>
+
+                <a href="{{ url_for('services.catalog') }}" class="btn btn-primary">Browse Our Services</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

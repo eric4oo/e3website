@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Contact Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .content-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .status-message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 4px solid;
+            display: none;
+        }
+        
+        .status-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+        
+        .status-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .header-actions {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📞 Contact Page Editor</h1>
+            <div class="header-actions">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Dashboard</a>
+                <button class="btn btn-primary" onclick="saveContactContent()">Save Changes</button>
+            </div>
+        </div>
+        
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div>
+            <div class="content-section">
+                <div class="section-title">Page Title & Introduction</div>
+                
+                <div class="form-group">
+                    <label for="contactTitle">Page Title</label>
+                    <input type="text" id="contactTitle" placeholder="Get In Touch" value="{{ content.get('contact_title', 'Get In Touch') }}">
+                    <small>Main heading that appears at the top of the contact page</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contactIntro">Introduction Message</label>
+                    <textarea id="contactIntro" placeholder="Enter introductory message...">{{ content.get('contact_intro', 'Have a project in mind? We would love to hear from you!') }}</textarea>
+                    <small>Brief introduction text shown after the title</small>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-title">Contact Information</div>
+                
+                <div class="form-group">
+                    <label for="contactEmail">Email Address</label>
+                    <input type="email" id="contactEmail" placeholder="info@example.com" value="{{ content.get('contact_email', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="contactWebsite">Website URL</label>
+                    <input type="url" id="contactWebsite" placeholder="www.example.com" value="{{ content.get('contact_website', '') }}">
+                    <small>Enter without https:// (e.g., www.example.com)</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="instagramHandle">Instagram Handle</label>
+                    <input type="text" id="instagramHandle" placeholder="e3studio" value="{{ content.get('instagram_handle', '') }}">
+                    <small>Enter your Instagram username without the @ symbol (e.g., e3studio)</small>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="section-title">Additional Information</div>
+                
+                <div class="form-group">
+                    <label for="contactMessage">Contact Message</label>
+                    <textarea id="contactMessage" placeholder="Enter contact page message...">{{ content.get('contact_message', 'For inquiries and quotes, please contact us.') }}</textarea>
+                    <small>This message appears in the "What We\'re Here For" section</small>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <div class="form-actions">
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    <button class="btn btn-primary" onclick="saveContactContent()">Save All Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const contactTitleInput = document.getElementById('contactTitle');
+        const contactIntroInput = document.getElementById('contactIntro');
+        const contactMessageInput = document.getElementById('contactMessage');
+        const contactEmailInput = document.getElementById('contactEmail');
+        const contactWebsiteInput = document.getElementById('contactWebsite');
+        const instagramHandleInput = document.getElementById('instagramHandle');
+        
+        function saveContactContent() {
+            const data = {
+                contact_title: contactTitleInput.value,
+                contact_intro: contactIntroInput.value,
+                contact_message: contactMessageInput.value,
+                contact_email: contactEmailInput.value,
+                contact_website: contactWebsiteInput.value,
+                instagram_handle: instagramHandleInput.value
+            };
+            
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Find save button and show loading state
+            const saveButton = event.target;
+            const originalText = saveButton.textContent;
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+            
+            fetch('{{ url_for("admin.update_contact_content") }}', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to save content');
+                }
+                return response.json();
+            })
+            .then(result => {
+                showStatus('Contact page content saved successfully!', 'success');
+            })
+            .catch(error => {
+                showStatus('Error saving content: ' + error.message, 'error');
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.textContent = originalText;
+            });
+        }
+        
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message ' + type;
+            
+            setTimeout(() => {
+                statusMessage.className = 'status-message';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

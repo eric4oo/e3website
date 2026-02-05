@@ -4,9 +4,12 @@
 
 ### 1. Database Model Updates (`app/models.py`)
 The `Service` model now includes:
+- **`price_base`** (Float, nullable) - Base price (NULL = Contact for Quote)
 - **`media_gallery`** (JSON) - Stores list of uploaded photos/videos with URLs and captions
 - **`bulk_pricing`** (JSON) - Stores quantity-based pricing tiers with `min_quantity` and `price`
-- **`get_price_for_quantity(quantity)`** method - Calculates price based on order quantity
+- **`variants`** (JSON) - Stores product variants with `name`, `price` (nullable), `description`, `sku`, and `is_available` flag
+- **`requires_quote()`** method - Returns True if item needs a quote (price_base is None)
+- **`get_price_for_quantity(quantity)`** method - Calculates price based on order quantity (returns None if quote required)
 
 ### 2. Admin Routes (`app/admin.py`)
 New endpoints for item management:
@@ -26,9 +29,11 @@ Complete item management UI featuring:
 - **Add/Edit Modal** - Form for creating and editing items with sections for:
   - Basic information (name, category, descriptions)
   - Pricing (base price, bulk tiers)
+  - Product variants (different versions with separate pricing)
   - Media gallery (upload and manage photos/videos)
   - Active/Inactive status toggle
 - **Bulk Pricing Manager** - Add/remove quantity-based discount tiers
+- **Product Variants Manager** - Add/remove product variants with individual prices and SKUs
 - **Media Upload** - Drag-and-drop file upload with caption support
 - **Responsive Design** - Works on desktop and mobile devices
 
@@ -43,6 +48,19 @@ Complete item management UI featuring:
 
 ## Key Features
 
+### Contact for Quote Option
+Instead of displaying a price and "Add to Cart" button, items can be configured to show "Contact for Quote":
+- Set at item level (base item doesn't have a price)
+- Set at variant level (individual variants can require quotes)
+- Useful for custom projects, enterprise sales, or made-to-order items
+- Price field becomes optional when Contact for Quote is enabled
+
+### Pricing Systems
+Items can use:
+1. **Fixed base price** - Standard pricing model
+2. **Contact for Quote** - No price, customer must request quote
+3. **Variants with mixed pricing** - Some variants have prices, others require quotes
+
 ### Bulk Pricing System
 ```python
 # Example: $500 base price with bulk discounts
@@ -55,6 +73,30 @@ Tier 3: 50+ items @ $350
 10 items: 10 × $450 = $4,500
 25 items: 25 × $400 = $10,000
 50 items: 50 × $350 = $17,500
+```
+
+### Product Variants System
+```python
+# Example: T-Shirt with size variants (mixed pricing)
+Base Price: Not used when variants exist
+
+Variants:
+- Small: $25 (fits XS-S)
+- Medium: $25 (fits M-L)
+- Large: $27 (fits XL-XXL)
+- Extra Large: Contact for Quote (custom sizing available)
+
+# Each variant has:
+- Unique name/identifier
+- Price (or Contact for Quote)
+- Optional description/notes
+- Optional SKU for tracking
+- Availability flag (can disable specific variants)
+
+# Variants work with bulk pricing:
+Customer selects "Large" variant ($27)
+Orders 10+ units
+Bulk pricing applies (if configured): 10 × $24 = $240
 ```
 
 ### Media Management
@@ -86,8 +128,25 @@ Tier 3: 50+ items @ $350
 1. Fill in **Basic Information** section
 2. Set **Base Price** and optional **Image URL**
 3. Add **Bulk Pricing Tiers** (optional but recommended)
-4. Upload **Photos/Videos** (optional)
-5. Click **Save Item**
+4. Add **Product Variants** (optional for multi-version items)
+5. Upload **Photos/Videos** (optional)
+6. Click **Save Item**
+
+### Managing Product Variants
+- Click **"Add Variant"** to add a version of the product
+- Specify variant **Name** (e.g., Small, Medium, Large)
+- Set the **Price** for this specific variant
+- Optionally add **Description** (dimensions, materials, colors, etc.)
+- Optionally add **SKU** for inventory tracking
+- Toggle **Available for purchase** to enable/disable the variant
+- Remove variants with the **"Delete Variant"** button
+
+**Use cases for variants:**
+- Different sizes (Small, Medium, Large)
+- Different colors (Red, Blue, Green)
+- Different materials (Wood, Metal, Plastic)
+- Different finishes (Matte, Glossy, Textured)
+- Different configurations with different turnaround times
 
 ### Managing Bulk Pricing
 - Click **"Add Pricing Tier"** to add quantity discounts
@@ -107,19 +166,19 @@ Tier 3: 50+ items @ $350
 ```
 website3/
 ├── app/
-│   ├── models.py           (Updated with media_gallery, bulk_pricing)
+│   ├── models.py           (Updated with media_gallery, bulk_pricing, variants)
 │   ├── admin.py            (Item management routes added)
 │   └── __init__.py         (Already configured properly)
 ├── templates/
 │   └── admin/
-│       ├── items.html      (New item management interface)
+│       ├── items.html      (New item management interface with variants UI)
 │       └── dashboard.html  (Updated with Manage Items link)
 ├── static/
 │   ├── css/
 │   ├── js/
 │   └── uploads/            (New directory for media files)
 ├── requirements.txt        (Added python-slugify)
-└── ITEM_MANAGEMENT.md      (New comprehensive guide)
+└── ITEM_MANAGEMENT.md      (Comprehensive guide including variants)
 ```
 
 ## Security Considerations
@@ -136,9 +195,16 @@ website3/
 - All API endpoints protected
 
 ### Data Validation
-- Required fields: name, category, description, price
-- Price validation (must be numeric, >= 0)
+- Required fields: name, category, description
+- Price validation: Either base price or "Contact for Quote" must be selected
+- Price must be >= 0 if set
 - Quantity validation for bulk pricing (must be > 0)
+- Variant validation:
+  - Variant name required when variant exists
+  - Variant must have either price or "Contact for Quote" selected
+  - Variant price must be >= 0 if set
+  - SKU is optional
+  - Description is optional
 - Category validation against predefined list
 - Duplicate name check (via slug uniqueness)
 
@@ -146,14 +212,17 @@ website3/
 
 The database schema is automatically updated on app startup:
 - `db.create_all()` creates new tables/columns
-- Service model now has `media_gallery` and `bulk_pricing` JSON columns
+- Service model now has `media_gallery`, `bulk_pricing`, and `variants` JSON columns
 - No migration files needed (using SQLAlchemy directly)
 
 ## Next Steps After Implementation
 
 1. **Test the interface** - Add a test item and verify it appears correctly
-2. **Upload sample media** - Test photo and video uploads
-3. **Test bulk pricing** - Verify price calculation during checkout
+2. **Test variants** - Create an item with 2-3 variants and verify all are editable
+3. **Upload sample media** - Test photo and video uploads
+4. **Test bulk pricing** - Verify price calculation during checkout
+5. **Test variant pricing** - Verify variant prices display and are selectable
+6. **Customize categories** - Modify if needed in admin.py (line ~203)
 4. **Customize categories** - Modify if needed in admin.py (line ~203)
 5. **Frontend integration** - Update catalog/detail pages to use new media gallery
 6. **Customer testing** - Have users test the shopping experience

@@ -331,7 +331,7 @@
             gap: 15px;
         }
         
-        .bulk-pricing-section, .media-section {
+        .bulk-pricing-section, .media-section, .variants-section {
             background: #f8f9fa;
             padding: 15px;
             border-radius: 4px;
@@ -376,6 +376,66 @@
         }
         
         .pricing-tier .delete-tier:hover {
+            background: #c0392b;
+        }
+        
+        .variant-item {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 12px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .variant-item .form-row {
+            margin-bottom: 12px;
+        }
+        
+        .variant-item input,
+        .variant-item textarea {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .variant-item label {
+            margin-bottom: 5px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .variant-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .variant-controls label {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+        }
+        
+        .variant-controls input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .variant-controls .delete-variant {
+            padding: 6px 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .variant-controls .delete-variant:hover {
             background: #c0392b;
         }
         
@@ -562,6 +622,9 @@
                 <button class="btn btn-primary btn-icon" onclick="openAddItemModal()">
                     <span class="icon">+</span> Add New Item
                 </button>
+                <a href="{{ url_for('admin.manage_categories') }}" class="btn btn-secondary">Manage Categories</a>
+                <a href="{{ url_for('admin.edit_about') }}" class="btn btn-secondary">Edit About</a>
+                <a href="{{ url_for('admin.edit_contact') }}" class="btn btn-secondary">Edit Contact</a>
                 <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Back to Admin</a>
             </div>
         </div>
@@ -570,11 +633,8 @@
         <div id="statusMessage" class="status-message"></div>
         
         <!-- Category Filter -->
-        <div class="category-filter">
+        <div class="category-filter" id="categoryFilter">
             <button class="category-btn active" onclick="filterByCategory(null)">All Items</button>
-            <button class="category-btn" onclick="filterByCategory('industrial_design')">Industrial Design</button>
-            <button class="category-btn" onclick="filterByCategory('3d_printing')">3D Printing</button>
-            <button class="category-btn" onclick="filterByCategory('laser_engraving')">Laser Engraving</button>
         </div>
         
         <!-- Items Grid -->
@@ -602,11 +662,17 @@
                     </div>
                     <div class="form-group">
                         <label>Category *</label>
-                        <select id="itemCategory" required>
-                            <option value="">Select a category</option>
-                            {% for cat in categories %}
-                            <option value="{{ cat }}">{{ cat.replace('_', ' ').title() }}</option>
-                            {% endfor %}
+                        <select id="itemCategory" required onchange="updateSubcategoryOptions()">
+                            <option value="">Select category</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group" id="subcategoryGroup" style="display: none;">
+                        <label>Sub-Category (Optional)</label>
+                        <select id="itemSubCategory">
+                            <option value="">No sub-category</option>
                         </select>
                     </div>
                 </div>
@@ -624,10 +690,18 @@
                 <!-- Pricing -->
                 <div class="section-title">Pricing</div>
                 
-                <div class="form-row">
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="contactForQuote" onchange="togglePriceField()">
+                        Contact for Quote (no price set)
+                    </label>
+                    <small style="color: #7f8c8d; display: block; margin-top: 5px;">Check this if you want customers to contact you for pricing instead of adding to cart</small>
+                </div>
+                
+                <div class="form-row" id="priceInputRow">
                     <div class="form-group">
-                        <label>Base Price ($) *</label>
-                        <input type="number" id="itemPrice" min="0" step="0.01" required>
+                        <label>Base Price ($)</label>
+                        <input type="number" id="itemPrice" min="0" step="0.01">
                     </div>
                     <div class="form-group">
                         <label>Image URL</label>
@@ -644,6 +718,18 @@
                     
                     <button type="button" class="btn btn-secondary btn-small btn-icon" onclick="addPricingTier()">
                         <span class="icon">+</span> Add Pricing Tier
+                    </button>
+                </div>
+                
+                <!-- Product Variants -->
+                <div class="variants-section">
+                    <div class="section-title">Product Variants (Optional)</div>
+                    <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Add different versions of this product (e.g., small/large, different colors) with separate pricing</p>
+                    
+                    <div id="variantsList"></div>
+                    
+                    <button type="button" class="btn btn-secondary btn-small btn-icon" onclick="addVariant()">
+                        <span class="icon">+</span> Add Variant
                     </button>
                 </div>
                 
@@ -696,8 +782,85 @@
         let currentCategory = null;
         const categories = {{ categories | tojson }};
         
-        // Load items on page load
-        document.addEventListener('DOMContentLoaded', loadItems);
+        // Load items and initialize UI on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            renderCategoryFilters();
+            populateCategorySelect();
+            loadItems();
+        });
+        
+        function renderCategoryFilters() {
+            const filterContainer = document.getElementById('categoryFilter');
+            const buttons = filterContainer.querySelectorAll('button');
+            
+            buttons.forEach((btn, idx) => {
+                if (idx > 0) btn.remove(); // Remove old footer except "All Items"
+            });
+            
+            // Add category filter buttons
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'category-btn';
+                btn.type = 'button';
+                btn.textContent = cat.name;
+                btn.onclick = function(e) {
+                    e.preventDefault();
+                    filterByCategory(cat.id);
+                };
+                filterContainer.appendChild(btn);
+            });
+        }
+        
+        function populateCategorySelect() {
+            const categorySelect = document.getElementById('itemCategory');
+            categorySelect.innerHTML = '<option value="">Select category</option>';
+            
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = cat.name;
+                categorySelect.appendChild(option);
+            });
+        }
+        
+        function updateSubcategoryOptions() {
+            const categoryId = document.getElementById('itemCategory').value;
+            const subcategoryGroup = document.getElementById('subcategoryGroup');
+            const subcategorySelect = document.getElementById('itemSubCategory');
+            
+            subcategorySelect.innerHTML = '<option value="">No sub-category</option>';
+            
+            if (categoryId) {
+                const selectedCat = categories.find(c => c.id == categoryId);
+                if (selectedCat && selectedCat.children && selectedCat.children.length > 0) {
+                    selectedCat.children.forEach(subCat => {
+                        if (subCat.is_active) {
+                            const option = document.createElement('option');
+                            option.value = subCat.id;
+                            option.textContent = subCat.name;
+                            subcategorySelect.appendChild(option);
+                        }
+                    });
+                    subcategoryGroup.style.display = 'block';
+                } else {
+                    subcategoryGroup.style.display = 'none';
+                }
+            } else {
+                subcategoryGroup.style.display = 'none';
+            }
+        }
+        
+        function findCategoryById(id) {
+            for (let cat of categories) {
+                if (cat.id == id) return cat;
+                if (cat.children) {
+                    for (let subCat of cat.children) {
+                        if (subCat.id == id) return subCat;
+                    }
+                }
+            }
+            return null;
+        }
         
         // Drag and drop for media
         const mediaInput = document.getElementById('mediaFile');
@@ -732,10 +895,13 @@
         async function loadItems() {
             try {
                 const url = currentCategory 
-                    ? `{{ url_for('admin.get_items') }}?category=${currentCategory}`
+                    ? `{{ url_for('admin.get_items') }}?category_id=${currentCategory}`
                     : '{{ url_for("admin.get_items") }}';
                 
                 const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status} ${response.statusText}`);
+                }
                 const items = await response.json();
                 
                 const container = document.getElementById('itemsContainer');
@@ -750,6 +916,13 @@
                     return;
                 }
                 
+                const categoryName = item => {
+                    if (item.sub_category_name) {
+                        return `${item.category_name} › ${item.sub_category_name}`;
+                    }
+                    return item.category_name || 'Uncategorized';
+                };
+                
                 container.innerHTML = items.map(item => `
                     <div class="item-card">
                         <div class="item-image">
@@ -757,11 +930,13 @@
                         </div>
                         <div class="item-content">
                             <div class="item-name">${item.name}</div>
-                            <div class="item-category">${item.category.replace('_', ' ')}</div>
+                            <div class="item-category">${categoryName(item)}</div>
                             <div class="item-description">${item.description}</div>
-                            <div class="item-price">$${item.price_base.toFixed(2)}</div>
+                            <div class="item-price">
+                                ${item.price_base !== null ? `$${item.price_base.toFixed(2)}` : '<span style="color: #e67e22; font-weight: 600;">Contact for Quote</span>'}
+                            </div>
                             <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 10px;">
-                                ${item.media_gallery.length} media • ${item.bulk_pricing.length} pricing tiers
+                                ${item.media_gallery.length} media • ${item.bulk_pricing.length} pricing tiers • ${item.variants.length} variants
                             </div>
                             <div class="item-actions">
                                 <button class="edit-btn" onclick="editItem(${item.id})">Edit</button>
@@ -791,7 +966,10 @@
             currentItemId = null;
             document.getElementById('modalTitle').textContent = 'Add New Item';
             document.getElementById('itemForm').reset();
+            document.getElementById('contactForQuote').checked = false;
+            document.getElementById('priceInputRow').style.display = 'grid';
             document.getElementById('pricingTiers').innerHTML = '';
+            document.getElementById('variantsList').innerHTML = '';
             document.getElementById('mediaGallery').innerHTML = '';
             document.getElementById('mediaFile').value = '';
             
@@ -803,6 +981,17 @@
             document.getElementById('itemModal').classList.remove('active');
         }
         
+        function togglePriceField() {
+            const contactQuote = document.getElementById('contactForQuote').checked;
+            const priceRow = document.getElementById('priceInputRow');
+            if (contactQuote) {
+                priceRow.style.display = 'none';
+                document.getElementById('itemPrice').value = '';
+            } else {
+                priceRow.style.display = 'grid';
+            }
+        }
+        
         async function editItem(itemId) {
             try {
                 const response = await fetch(`/admin/api/items/${itemId}`);
@@ -811,10 +1000,24 @@
                 currentItemId = itemId;
                 document.getElementById('modalTitle').textContent = `Edit: ${item.name}`;
                 document.getElementById('itemName').value = item.name;
-                document.getElementById('itemCategory').value = item.category;
+                document.getElementById('itemCategory').value = item.category_id;
+                updateSubcategoryOptions();
+                if (item.sub_category_id) {
+                    document.getElementById('itemSubCategory').value = item.sub_category_id;
+                }
                 document.getElementById('itemDescription').value = item.description;
                 document.getElementById('itemLongDescription').value = item.long_description || '';
-                document.getElementById('itemPrice').value = item.price_base;
+                
+                // Handle optional price
+                const isQuote = item.price_base === null;
+                document.getElementById('contactForQuote').checked = isQuote;
+                document.getElementById('itemPrice').value = item.price_base || '';
+                if (isQuote) {
+                    document.getElementById('priceInputRow').style.display = 'none';
+                } else {
+                    document.getElementById('priceInputRow').style.display = 'grid';
+                }
+                
                 document.getElementById('itemImageUrl').value = item.image_url || '';
                 document.getElementById('itemActive').checked = item.is_active;
                 
@@ -823,6 +1026,14 @@
                 if (item.bulk_pricing && item.bulk_pricing.length > 0) {
                     item.bulk_pricing.forEach(tier => {
                         addPricingTier(tier.min_quantity, tier.price);
+                    });
+                }
+                
+                // Load variants
+                document.getElementById('variantsList').innerHTML = '';
+                if (item.variants && item.variants.length > 0) {
+                    item.variants.forEach(variant => {
+                        addVariant(variant.name, variant.price, variant.description, variant.sku, variant.is_available);
                     });
                 }
                 
@@ -856,6 +1067,61 @@
                 <button type="button" class="delete-tier" onclick="this.parentElement.remove()">Remove</button>
             `;
             tiersContainer.appendChild(tier);
+        }
+        
+        function addVariant(name = '', price = '', description = '', sku = '', is_available = true) {
+            const variantsContainer = document.getElementById('variantsList');
+            const variant = document.createElement('div');
+            variant.className = 'variant-item';
+            const isQuote = price === '' || price === null;
+            variant.innerHTML = `
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Variant Name *</label>
+                        <input type="text" class="variant-name" value="${name}" placeholder="e.g., Small, Medium, Large, Red, Blue, etc." required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" class="variant-quote" ${isQuote ? 'checked' : ''} onchange="toggleVariantPrice(this)">
+                        Contact for Quote (no price set)
+                    </label>
+                </div>
+                <div class="form-row variant-price-row" ${isQuote ? 'style="display: none;"' : ''}>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>Price ($)</label>
+                        <input type="number" class="variant-price" value="${!isQuote && price ? price : ''}" min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Description / Notes</label>
+                    <textarea class="variant-description" placeholder="Optional: dimensions, materials, colors, etc." style="min-height: 60px;margin-bottom: 0;">${description}</textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label>SKU / Item Code</label>
+                        <input type="text" class="variant-sku" value="${sku}" placeholder="Optional: for inventory tracking">
+                    </div>
+                </div>
+                <div class="variant-controls">
+                    <label style="margin: 0;">
+                        <input type="checkbox" class="variant-available" ${is_available ? 'checked' : ''}>
+                        Available for purchase
+                    </label>
+                    <button type="button" class="delete-variant" onclick="this.closest('.variant-item').remove()">Delete Variant</button>
+                </div>
+            `;
+            variantsContainer.appendChild(variant);
+        }
+        
+        function toggleVariantPrice(checkbox) {
+            const priceRow = checkbox.closest('.variant-item').querySelector('.variant-price-row');
+            if (checkbox.checked) {
+                priceRow.style.display = 'none';
+                checkbox.closest('.variant-item').querySelector('.variant-price').value = '';
+            } else {
+                priceRow.style.display = 'grid';
+            }
         }
         
         function previewMediaFile(input) {
@@ -965,6 +1231,34 @@
                     }
                 });
                 
+                const variants = [];
+                document.querySelectorAll('.variant-item').forEach(variantEl => {
+                    const name = variantEl.querySelector('.variant-name').value.trim();
+                    const isQuote = variantEl.querySelector('.variant-quote').checked;
+                    let price = null;
+                    
+                    if (!isQuote) {
+                        const priceValue = variantEl.querySelector('.variant-price').value.trim();
+                        if (priceValue) {
+                            price = parseFloat(priceValue);
+                        }
+                    }
+                    
+                    const description = variantEl.querySelector('.variant-description').value.trim();
+                    const sku = variantEl.querySelector('.variant-sku').value.trim();
+                    const is_available = variantEl.querySelector('.variant-available').checked;
+                    
+                    if (name && (price !== null || isQuote)) {
+                        variants.push({
+                            name: name,
+                            price: price,
+                            description: description,
+                            sku: sku,
+                            is_available: is_available
+                        });
+                    }
+                });
+                
                 // For existing items, preserve the current media gallery
                 let mediaGallery = [];
                 if (currentItemId) {
@@ -973,15 +1267,26 @@
                     mediaGallery = existingItem.media_gallery || [];
                 }
                 
+                // Handle optional price
+                let price_base = null;
+                if (!document.getElementById('contactForQuote').checked) {
+                    const priceValue = document.getElementById('itemPrice').value.trim();
+                    if (priceValue) {
+                        price_base = parseFloat(priceValue);
+                    }
+                }
+                
                 const data = {
                     name: document.getElementById('itemName').value,
-                    category: document.getElementById('itemCategory').value,
+                    category_id: parseInt(document.getElementById('itemCategory').value),
+                    sub_category_id: document.getElementById('itemSubCategory').value ? parseInt(document.getElementById('itemSubCategory').value) : null,
                     description: document.getElementById('itemDescription').value,
                     long_description: document.getElementById('itemLongDescription').value,
-                    price_base: parseFloat(document.getElementById('itemPrice').value),
+                    price_base: price_base,
                     image_url: document.getElementById('itemImageUrl').value,
                     is_active: document.getElementById('itemActive').checked,
                     bulk_pricing: pricingTiers,
+                    variants: variants,
                     media_gallery: mediaGallery
                 };
                 

@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropsWorks Admin - About Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .content-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .status-message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border-left: 4px solid;
+            display: none;
+        }
+        
+        .status-message.success {
+            display: block;
+            background: #d4edda;
+            color: #155724;
+            border-color: #28a745;
+        }
+        
+        .status-message.error {
+            display: block;
+            background: #f8d7da;
+            color: #721c24;
+            border-color: #f5c6cb;
+        }
+        
+        .preview-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .preview-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .preview-content {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 4px;
+            border-left: 4px solid #3498db;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .preview-content h1 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .preview-content p {
+            line-height: 1.6;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+            
+            .header-actions {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 About Page Editor</h1>
+            <div class="header-actions">
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">← Dashboard</a>
+                <a href="{{ url_for('admin.edit_contact') }}" class="btn btn-secondary">Edit Contact</a>
+                <button class="btn btn-primary" onclick="saveAboutContent()">Save Changes</button>
+            </div>
+        </div>
+        
+        <div id="statusMessage" class="status-message"></div>
+        
+        <div>
+            <!-- Main Content Sections -->
+            <div class="content-section">
+                <div class="section-title">Page Title & Main Content</div>
+                
+                <div class="form-group">
+                    <label for="aboutTitle">Page Title</label>
+                    <input type="text" id="aboutTitle" placeholder="About PropsWorks" value="{{ content.get('about_title', 'About PropsWorks') }}">
+                    <small>Main heading that appears at the top of the about page</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="aboutContent">Main Description</label>
+                    <textarea id="aboutContent" placeholder="Enter the main about page content...">{{ content.get('about_content', 'PropsWorks specializes in providing professional manufacturing services...') }}</textarea>
+                    <small>Primary description shown after the title</small>
+                </div>
+            </div>
+
+            <!-- Our Services Section -->
+            <div class="content-section">
+                <div class="section-title">Our Services Section</div>
+                
+                <div class="form-group">
+                    <label for="aboutServices">Services List</label>
+                    <textarea id="aboutServices" placeholder="Enter each service on a new line with format: Service Name: Description">{{ content.get('about_services', 'Industrial Design: Expert design and engineering for your concepts, from sketches to production-ready models\n3D Printing: High-quality 3D printing with various materials and finishing options\nLaser Engraving: Precision laser engraving and cutting for customization and branding') }}</textarea>
+                    <small>Enter each service on a new line. Format: Service Name: Description</small>
+                </div>
+            </div>
+
+            <!-- Why Choose PropsWorks Section -->
+            <div class="content-section">
+                <div class="section-title">Why Choose Us Section</div>
+                
+                <div class="form-group">
+                    <label for="aboutWhy">Why Choose Us List</label>
+                    <textarea id="aboutWhy" placeholder="Enter each reason on a new line">{{ content.get('about_why', 'Expert team with years of manufacturing experience\nFast turnaround times and responsive service\nQuality guaranteed on every project\nFlexible for single prototypes to medium volume orders\nCompetitive pricing and custom quotes') }}</textarea>
+                    <small>Enter each reason on a new line. These will display as bullet points.</small>
+                </div>
+            </div>
+
+            <!-- Perfect For Section -->
+            <div class="content-section">
+                <div class="section-title">Perfect For Section</div>
+                
+                <div class="form-group">
+                    <label for="aboutPerfectFor">Perfect For List</label>
+                    <textarea id="aboutPerfectFor" placeholder="Enter each item on a new line">{{ content.get('about_perfect_for', 'Film and TV production props\nTheater and stage productions\nCustom merchandise and promotional items\nPrototype development and testing\nLimited edition product runs\nPersonalized gifts and awards') }}</textarea>
+                    <small>Enter each item on a new line. These will display as bullet points.</small>
+                </div>
+            </div>
+
+            <!-- Our Process Section -->
+            <div class="content-section">
+                <div class="section-title">Our Process Section</div>
+                
+                <div class="form-group">
+                    <label for="aboutProcess">Process Steps</label>
+                    <textarea id="aboutProcess" placeholder="Enter each step on a new line with format: Step Name: Description">{{ content.get('about_process', 'Consultation: Discuss your project requirements and vision\nDesign: Create or refine designs for your specifications\nPrototyping: Develop prototypes for approval and testing\nProduction: Manufacture to your exact specifications\nDelivery: Ship finished products to your location') }}</textarea>
+                    <small>Enter each step on a new line. Format: Step Name: Description. These will be numbered.</small>
+                </div>
+            </div>
+
+            <!-- Contact Info Section -->
+            <div class="content-section">
+                <div class="section-title">Contact Information</div>
+                
+                <div class="form-group">
+                    <label for="contactEmail">Email Address</label>
+                    <input type="email" id="contactEmail" placeholder="info@example.com" value="{{ content.get('contact_email', '') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="contactWebsite">Website URL</label>
+                    <input type="url" id="contactWebsite" placeholder="www.example.com" value="{{ content.get('contact_website', '') }}">
+                </div>
+            </div>
+
+            <!-- Save Section -->
+            <div class="content-section">
+                <div class="form-actions">
+                    <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Cancel</a>
+                    <button class="btn btn-primary" onclick="saveAboutContent()">Save All Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const aboutTitleInput = document.getElementById('aboutTitle');
+        const aboutContentInput = document.getElementById('aboutContent');
+        const aboutServicesInput = document.getElementById('aboutServices');
+        const aboutWhyInput = document.getElementById('aboutWhy');
+        const aboutPerfectForInput = document.getElementById('aboutPerfectFor');
+        const aboutProcessInput = document.getElementById('aboutProcess');
+        const contactEmailInput = document.getElementById('contactEmail');
+        const contactWebsiteInput = document.getElementById('contactWebsite');
+        
+        function saveAboutContent() {
+            const data = {
+                about_title: aboutTitleInput.value,
+                about_content: aboutContentInput.value,
+                about_services: aboutServicesInput.value,
+                about_why: aboutWhyInput.value,
+                about_perfect_for: aboutPerfectForInput.value,
+                about_process: aboutProcessInput.value,
+                contact_email: contactEmailInput.value,
+                contact_website: contactWebsiteInput.value
+            };
+            
+            const statusMessage = document.getElementById('statusMessage');
+            
+            // Find save button and show loading state
+            const saveButton = event.target;
+            const originalText = saveButton.textContent;
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+            
+            fetch('{{ url_for("admin.update_about_content") }}', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to save content');
+                }
+                return response.json();
+            })
+            .then(result => {
+                showStatus('About page content saved successfully!', 'success');
+            })
+            .catch(error => {
+                showStatus('Error saving content: ' + error.message, 'error');
+            })
+            .finally(() => {
+                saveButton.disabled = false;
+                saveButton.textContent = originalText;
+            });
+        }
+        
+        function showStatus(message, type) {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message ' + type;
+            
+            setTimeout(() => {
+                statusMessage.className = 'status-message';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>

@@ -1,18 +1,24 @@
 {
   "about_content": "We specialize in creating custom props and providing low-volume manufacturing services.",
+  "about_description": "",
+  "about_perfect_for": "Custom merchandise and promotional items\nPrototype development and testing\nLimited edition product runs\nPersonalized gifts and awards",
+  "about_process": "Consultation: Discuss your project requirements and vision\nDesign: Create or refine designs for your specifications\nPrototyping: Develop prototypes for approval and testing\nProduction: Manufacture to your exact specifications\nDelivery: Ship finished products to your location",
+  "about_services": "Industrial Design: Expert design and engineering for your concepts.\n3D Printing: High-quality 3D printing products\nLaser Engraving: Precision laser engraving and cutting for customization and branding",
   "about_title": "About",
+  "about_why": "Expert team with years of manufacturing experience\nFast turnaround times and responsive service\nQuality guaranteed on every project\nFlexible for single prototypes to medium volume orders\nCompetitive pricing and custom quotes",
   "colors": {
-    "primary": "#2a4d6f",
-    "secondary": "#59a6d9",
-    "accent": "#e74c3c",
-    "background": "#ecf0f1",
+    "primary": "#1a2634",
+    "secondary": "#f8f9fa",
+    "accent": "#00d4ff",
+    "background": "#f8f9fa",
     "text": "#2c3e50"
   },
   "contact_email": "e3studioshop@gmail.com",
   "contact_phone": "(226) 347-5866",
+  "contact_website": "www.propsworks.com",
   "hero_subtitle": "Professional Maker Services",
   "hero_title": "Welcome to E3 Studio!",
-  "last_updated": "2026-02-05T10:20:04.416728",
+  "last_updated": "2026-02-05T15:17:13.877667",
   "services": {
     "3d_printing": {
       "description": "High-quality 3D printing services",

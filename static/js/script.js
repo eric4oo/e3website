@@ -48,6 +48,12 @@ function removeFromCart(itemId) {
     }
 }
 
+// Contact for quote function
+function contactForQuote(serviceName) {
+    // Navigate to contact page (optionally could pass service name as query param for future use)
+    window.location.href = '/contact';
+}
+
 // Show notification
 function showNotification(message, type = 'success') {
     const notification = document.getElementById('notification');

@@ -1,6 +1,54 @@
 from datetime import datetime
 from app import db
 
+class Category(db.Model):
+    """Product/Service categories with parent-child hierarchy."""
+    __tablename__ = 'categories'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    slug = db.Column(db.String(255), unique=True, nullable=False)
+    parent_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)  # None for root categories
+    description = db.Column(db.Text)
+    order = db.Column(db.Integer, default=0)  # For sorting
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Self-referential relationship for parent/child
+    children = db.relationship('Category', 
+                              backref=db.backref('parent', remote_side=[id]),
+                              cascade='all, delete-orphan')
+    
+    # Relationship to services in this category (as parent category)
+    services = db.relationship('Service', 
+                              foreign_keys='Service.category_id',
+                              backref='category_obj', 
+                              lazy=True)
+    
+    # Relationship to services in this category (as sub-category)
+    sub_services = db.relationship('Service', 
+                                  foreign_keys='Service.sub_category_id',
+                                  backref='sub_category_obj')
+    
+    def __repr__(self):
+        return f'<Category {self.name}>'
+    
+    def to_dict(self, include_children=False):
+        """Convert category to dictionary."""
+        data = {
+            'id': self.id,
+            'name': self.name,
+            'slug': self.slug,
+            'parent_id': self.parent_id,
+            'description': self.description,
+            'order': self.order,
+            'is_active': self.is_active
+        }
+        if include_children and self.children:
+            data['children'] = [child.to_dict(include_children=True) for child in sorted(self.children, key=lambda x: x.order)]
+        return data
+
+
 class Service(db.Model):
     """Service/Product model for e-commerce."""
     __tablename__ = 'services'
@@ -10,22 +58,32 @@ class Service(db.Model):
     slug = db.Column(db.String(255), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=False)
     long_description = db.Column(db.Text)
-    price_base = db.Column(db.Float, nullable=False)
-    category = db.Column(db.String(100), nullable=False)  # industrial_design, 3d_printing, laser_engraving
+    price_base = db.Column(db.Float, nullable=True)  # None = Contact for Quote
+    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)  # Parent category (e.g., Industrial Design)
+    sub_category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)  # Optional sub-category (e.g., CAD)
     image_url = db.Column(db.String(500))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     media_gallery = db.Column(db.JSON, default=list)  # Stores list of media: [{'type': 'photo/video', 'url': '...', 'caption': '...'}]
     bulk_pricing = db.Column(db.JSON, default=list)  # Stores bulk pricing tiers: [{'min_quantity': 10, 'price': 450}]
+    variants = db.Column(db.JSON, default=list)  # Stores product variants: [{'name': 'Small', 'price': 100, 'description': '...', 'sku': '...', 'is_available': True}]
     
     # Relationships
     service_options = db.relationship('ServiceOption', backref='service', lazy=True, cascade='all, delete-orphan')
+
     
     def __repr__(self):
         return f'<Service {self.name}>'
     
+    def requires_quote(self):
+        """Check if this item requires a quote (no base price set)."""
+        return self.price_base is None
+    
     def get_price_for_quantity(self, quantity):
-        """Get price based on quantity, considering bulk discounts."""
+        """Get price based on quantity, considering bulk discounts. Returns None if quote required."""
+        if self.price_base is None:
+            return None
+            
         if not self.bulk_pricing:
             return self.price_base
         

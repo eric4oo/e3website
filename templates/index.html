@@ -5,7 +5,7 @@
     <h1>{{ content.hero_title if content else 'Custom Manufacturing Services' }}</h1>
     <p>{{ content.hero_subtitle if content else 'Professional Industrial Design, 3D Printing & Laser Engraving' }}</p>
     <p class="hero-subtitle">Specializing in Props and Low to Medium Volume Orders</p>
-    <a href="{{ url_for('services.catalog') }}" class="btn btn-primary btn-large">Browse Services</a>
+    <a href="{{ url_for('services.catalog') }}" class="btn btn-primary">Browse All</a>
 </div>
 
 <section class="services-showcase">
@@ -59,4 +59,46 @@
     <p>Browse our services or contact us for a custom quote on your specific requirements.</p>
     <a href="{{ url_for('services.catalog') }}" class="btn btn-primary btn-large">Get Started</a>
 </section>
+
+{% if content and content.get('instagram_handle') %}
+<section class="instagram-section">
+    <h2>Follow Our Work</h2>
+    <p class="instagram-intro">Check out our latest projects and behind-the-scenes content on Instagram</p>
+    <div class="instagram-container">
+        <div id="instagram-feed" class="instagram-feed">
+            <!-- Instagram posts will load here, fallback to link below -->
+        </div>
+        <div class="instagram-cta">
+            <a href="https://instagram.com/{{ content.instagram_handle }}" target="_blank" class="btn btn-instagram">
+                <span class="instagram-icon">📸</span>
+                Follow @{{ content.instagram_handle }}
+            </a>
+            <p>See all our latest posts and project updates</p>
+        </div>
+    </div>
+</section>
+<script>
+    // Load Instagram feed
+    document.addEventListener('DOMContentLoaded', function() {
+        const instagramHandle = '{{ content.instagram_handle }}';
+        const feedContainer = document.getElementById('instagram-feed');
+        if (instagramHandle) {
+            loadInstagramFeed(instagramHandle, feedContainer);
+        }
+    });
+    
+    function loadInstagramFeed(handle, container) {
+        // Note: To load real Instagram posts, you would need:
+        // 1. Setup Instagram Graph API with access token
+        // 2. Or use a third-party Instagram embed service
+        // For now, we'll display a styled placeholder with link to Instagram
+        container.innerHTML = `
+            <p style="text-align: center; padding: 2rem; color: #999;">
+                Visit our Instagram to see our latest projects<br/>
+                <a href="https://instagram.com/${handle}" target="_blank" style="color: #3498db; text-decoration: underline;">@${handle}</a>
+            </p>
+        `;
+    }
+</script>
+{% endif %}
 {% endblock %}
