@@ -1,8 +1,18 @@
 import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+import json
 
 db = SQLAlchemy()
+
+def load_content():
+    """Load content from JSON file."""
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    content_file = os.path.join(root_dir, 'instance', 'content.json')
+    if os.path.exists(content_file):
+        with open(content_file, 'r') as f:
+            return json.load(f)
+    return {}
 
 def create_app(config_name='development'):
     """Application factory function."""
@@ -22,6 +32,11 @@ def create_app(config_name='development'):
     
     # Initialize database
     db.init_app(app)
+    
+    # Add context processor to inject content into all templates
+    @app.context_processor
+    def inject_content():
+        return {'content': load_content()}
     
     # Register blueprints
     from app.routes import main_bp

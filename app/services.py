@@ -3,6 +3,8 @@ from app.models import Service, Cart, CartItem, Order, OrderItem, db
 from app.payment import get_square_processor
 import uuid
 from datetime import datetime
+import json
+import os
 
 services_bp = Blueprint('services', __name__, url_prefix='/services')
 
@@ -13,11 +15,20 @@ CATEGORIES = {
     'laser_engraving': 'Laser Engraving'
 }
 
+def load_content():
+    """Load content from JSON file."""
+    content_file = os.path.join(os.path.dirname(__file__), '..', 'instance', 'content.json')
+    if os.path.exists(content_file):
+        with open(content_file, 'r') as f:
+            return json.load(f)
+    return {}
+
 
 @services_bp.route('/')
 def catalog():
     """Display all services/products."""
     category = request.args.get('category')
+    content = load_content()
     
     if category and category in CATEGORIES:
         services = Service.query.filter_by(category=category, is_active=True).all()
@@ -27,14 +38,16 @@ def catalog():
     return render_template('services/catalog.html', 
                          services=services,
                          categories=CATEGORIES,
-                         selected_category=category)
+                         selected_category=category,
+                         content=content)
 
 
 @services_bp.route('/<slug>')
 def service_detail(slug):
     """Display service details."""
+    content = load_content()
     service = Service.query.filter_by(slug=slug).first_or_404()
-    return render_template('services/detail.html', service=service)
+    return render_template('services/detail.html', service=service, content=content)
 
 
 @services_bp.route('/add-to-cart', methods=['POST'])
@@ -86,18 +99,20 @@ def add_to_cart():
 @services_bp.route('/cart')
 def view_cart():
     """Display shopping cart."""
+    content = load_content()
     session_id = request.cookies.get('cart_session')
     cart = None
     
     if session_id:
         cart = Cart.query.filter_by(session_id=session_id).first()
     
-    return render_template('services/cart.html', cart=cart)
+    return render_template('services/cart.html', cart=cart, content=content)
 
 
 @services_bp.route('/checkout')
 def checkout():
     """Checkout page."""
+    content = load_content()
     session_id = request.cookies.get('cart_session')
     cart = None
     
@@ -105,7 +120,7 @@ def checkout():
         cart = Cart.query.filter_by(session_id=session_id).first()
     
     if not cart or len(cart.items) == 0:
-        return render_template('services/cart_empty.html')
+        return render_template('services/cart_empty.html', content=content)
     
     # Pass Square configuration to template
     from flask import current_app
@@ -115,6 +130,7 @@ def checkout():
     
     return render_template('services/checkout.html', 
                          cart=cart,
+                         content=content,
                          square_app_id=square_app_id,
                          square_location_id=square_location_id,
                          cart_total_cents=cart_total_cents)

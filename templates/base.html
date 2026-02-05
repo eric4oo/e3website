@@ -5,12 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ title }} - Props & Manufacturing{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        :root {
+            --primary-color: {{ content.colors.primary if content and content.colors else '#0066cc' }};
+            --secondary-color: {{ content.colors.secondary if content and content.colors else '#f0f0f0' }};
+            --accent-color: {{ content.colors.accent if content and content.colors else '#e74c3c' }};
+            --background-color: {{ content.colors.background if content and content.colors else '#fff' }};
+            --text-color: {{ content.colors.text if content and content.colors else '#333' }};
+        }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="container">
             <div class="logo">
-                <a href="{{ url_for('main.index') }}">PropsWorks</a>
+                <!-- DEBUG: content={{ content }}, site_title={{ content.site_title if content else 'NO CONTENT' }} -->
+                <a href="{{ url_for('main.index') }}">{{ content.site_title if content and content.site_title else 'PropsWorks' }}</a>
             </div>
             <ul class="nav-links">
                 <li><a href="{{ url_for('main.index') }}">Home</a></li>
@@ -48,8 +58,8 @@
             </div>
             <div class="footer-section">
                 <h4>Support</h4>
-                <p>Email: support@propsworks.com</p>
-                <p>Phone: (555) 123-4567</p>
+                <p>Email: {{ content.contact_email if content else 'support@propsworks.com' }}</p>
+                <p>Phone: {{ content.contact_phone if content else '(555) 123-4567' }}</p>
             </div>
         </div>
         <p class="copyright">&copy; 2026 PropsWorks. Specializing in Props & Low-Medium Volume Orders.</p>

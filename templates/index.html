@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="hero">
-    <h1>Custom Manufacturing Services</h1>
-    <p>Professional Industrial Design, 3D Printing & Laser Engraving</p>
+    <h1>{{ content.hero_title if content else 'Custom Manufacturing Services' }}</h1>
+    <p>{{ content.hero_subtitle if content else 'Professional Industrial Design, 3D Printing & Laser Engraving' }}</p>
     <p class="hero-subtitle">Specializing in Props and Low to Medium Volume Orders</p>
     <a href="{{ url_for('services.catalog') }}" class="btn btn-primary btn-large">Browse Services</a>
 </div>
@@ -13,20 +13,20 @@
     <div class="showcase-grid">
         <div class="service-showcase">
             <div class="showcase-icon">🎨</div>
-            <h3>Industrial Design</h3>
-            <p>Custom design and engineering services for your unique concepts. From initial sketches to production-ready models.</p>
+            <h3>{{ content.services['industrial_design'].title if content and 'services' in content and 'industrial_design' in content.services else 'Industrial Design' }}</h3>
+            <p>{{ content.services['industrial_design'].description if content and 'services' in content and 'industrial_design' in content.services else 'Custom design and engineering services for your unique concepts. From initial sketches to production-ready models.' }}</p>
             <a href="{{ url_for('services.catalog', category='industrial_design') }}">Explore</a>
         </div>
         <div class="service-showcase">
             <div class="showcase-icon">🖨️</div>
-            <h3>3D Printing</h3>
-            <p>High-quality 3D printing services with various materials and finishes. Perfect for prototypes and production parts.</p>
+            <h3>{{ content.services['3d_printing'].title if content and 'services' in content and '3d_printing' in content.services else '3D Printing' }}</h3>
+            <p>{{ content.services['3d_printing'].description if content and 'services' in content and '3d_printing' in content.services else 'High-quality 3D printing services with various materials and finishes. Perfect for prototypes and production parts.' }}</p>
             <a href="{{ url_for('services.catalog', category='3d_printing') }}">Explore</a>
         </div>
         <div class="service-showcase">
             <div class="showcase-icon">⚡</div>
-            <h3>Laser Engraving</h3>
-            <p>Precision laser engraving and cutting services. Add custom branding and details to your projects.</p>
+            <h3>{{ content.services['laser_engraving'].title if content and 'services' in content and 'laser_engraving' in content.services else 'Laser Engraving' }}</h3>
+            <p>{{ content.services['laser_engraving'].description if content and 'services' in content and 'laser_engraving' in content.services else 'Precision laser engraving and cutting services. Add custom branding and details to your projects.' }}</p>
             <a href="{{ url_for('services.catalog', category='laser_engraving') }}">Explore</a>
         </div>
     </div>

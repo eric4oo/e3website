@@ -2,11 +2,11 @@
 
 {% block content %}
 <section class="about-section">
-    <h1>About PropsWorks</h1>
+    <h1>{{ content.about_title if content else 'About PropsWorks' }}</h1>
     
     <div class="about-content">
         <h2>Custom Manufacturing for Props & Low-Medium Volume Orders</h2>
-        <p>PropsWorks specializes in providing professional manufacturing services for creative professionals, filmmakers, prop makers, and businesses who need high-quality custom-made items.</p>
+        <p>{{ content.about_content if content else 'PropsWorks specializes in providing professional manufacturing services for creative professionals, filmmakers, prop makers, and businesses who need high-quality custom-made items.' }}</p>
         
         <h3>Our Services</h3>
         <ul>
