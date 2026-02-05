@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, jsonify, make_response
 from app.models import Service, Cart, CartItem, Order, OrderItem, Category, db
 from app.payment import get_square_processor
+from app.shipping import CanadaPostShippingService
 import uuid
 from datetime import datetime
 import json
@@ -153,6 +154,71 @@ def get_cart_count():
     })
 
 
+@services_bp.route('/api/shipping-rates', methods=['POST'])
+def get_shipping_rates():
+    """
+    Get real-time shipping rates based on destination postal code and cart weight.
+    
+    Request JSON:
+    {
+        'destination_postal_code': 'N9J 1V6',
+        'domestic_only': True
+    }
+    """
+    try:
+        data = request.get_json()
+        destination_postal_code = data.get('destination_postal_code', '').strip()
+        domestic_only = data.get('domestic_only', True)
+        
+        # Get cart items to calculate weight
+        session_id = request.cookies.get('cart_session')
+        if not session_id:
+            return jsonify({
+                'success': False,
+                'error': 'Cart not found'
+            }), 400
+        
+        cart = Cart.query.filter_by(session_id=session_id).first()
+        if not cart or len(cart.items) == 0:
+            return jsonify({
+                'success': False,
+                'error': 'Cart is empty'
+            }), 400
+        
+        # Calculate total weight from cart items
+        cart_items_data = [
+            {
+                'weight_kg': item.service.weight_kg,
+                'quantity': item.quantity
+            }
+            for item in cart.items
+        ]
+        total_weight = CanadaPostShippingService.calculate_total_weight(cart_items_data)
+        
+        # Get shipping rates (try real API first, fallback to demo)
+        rates = CanadaPostShippingService.get_shipping_rates(
+            destination_postal_code,
+            total_weight,
+            domestic_only
+        )
+        
+        # If no API credentials, use demo rates
+        if not rates['success'] and 'credentials not configured' in (rates.get('error') or ''):
+            rates = CanadaPostShippingService.get_demo_shipping_rates(
+                destination_postal_code,
+                total_weight
+            )
+            rates['is_demo'] = True
+        
+        return jsonify(rates)
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Error calculating shipping: {str(e)}'
+        }), 500
+
+
 @services_bp.route('/checkout')
 def checkout():
     """Checkout page."""
@@ -206,6 +272,11 @@ def process_payment():
         nonce = data.get('nonce')
         amount_cents = data.get('amount')
         
+        # Extract shipping information
+        shipping_method = data.get('shipping_method', 'DOM.RP')
+        shipping_service_name = data.get('shipping_service_name', 'Regular Parcel')
+        shipping_cost = float(data.get('shipping_cost', 0))
+        
         # Process payment with Square
         processor = get_square_processor()
         payment_result = processor.process_payment(
@@ -219,6 +290,9 @@ def process_payment():
                 'error': payment_result.get('error', 'Payment failed')
             }), 400
         
+        # Calculate subtotal (amount without shipping)
+        cart_subtotal = cart.get_total()
+        
         # Create order in database
         order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
         order = Order(
@@ -230,6 +304,10 @@ def process_payment():
             customer_city=customer_city,
             customer_state=customer_state,
             customer_zip=customer_zip,
+            shipping_method=shipping_method,
+            shipping_service_name=shipping_service_name,
+            shipping_cost=shipping_cost,
+            subtotal=cart_subtotal,
             total_amount=amount_cents / 100,
             status='processing',
             payment_status='paid',

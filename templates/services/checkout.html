@@ -35,16 +35,32 @@
                         <input type="text" id="customer_city" name="customer_city" required>
                     </div>
                     <div class="form-group">
-                        <label for="customer_state">State *</label>
-                        <input type="text" id="customer_state" name="customer_state" required>
+                        <label for="customer_state">Province *</label>
+                        <input type="text" id="customer_state" name="customer_state" placeholder="e.g., ON" required>
                     </div>
                     <div class="form-group">
-                        <label for="customer_zip">ZIP *</label>
-                        <input type="text" id="customer_zip" name="customer_zip" required>
+                        <label for="customer_zip">Postal Code *</label>
+                        <input type="text" id="customer_zip" name="customer_zip" placeholder="e.g., N9J 1V6" required>
                     </div>
                 </div>
                 
-                <h3>Payment Information</h3>
+                <!-- Shipping Method Selection -->
+                <h3>Shipping Method</h3>
+                <p class="info-text">Select your preferred shipping method:</p>
+                
+                <div id="shipping-options-container">
+                    <div class="loading-spinner">
+                        <p>Enter your postal code above to calculate shipping rates...</p>
+                    </div>
+                </div>
+                
+                <!-- Selected Shipping Display -->
+                <div id="selected-shipping" style="display: none; margin-top: 1.5rem; padding: 1rem; background-color: #f8f9fa; border-left: 4px solid var(--accent-color);">
+                    <p><strong>Selected Shipping:</strong> <span id="selected-shipping-name">-</span></p>
+                    <p><strong>Cost:</strong> $<span id="selected-shipping-cost">0.00</span></p>
+                </div>
+                
+                <h3 style="margin-top: 2rem;">Payment Information</h3>
                 <p>Secure payment processing powered by Square</p>
                 
                 <!-- Square Web Payments SDK container -->
@@ -68,6 +84,16 @@
                 
                 <div class="summary-divider"></div>
                 
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span id="subtotal-amount">${{ "%.2f"|format(cart.get_total()) }}</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Shipping:</span>
+                    <span id="shipping-amount">$0.00</span>
+                </div>
+                
                 <div class="summary-row total">
                     <span>Total:</span>
                     <span id="total-amount">${{ "%.2f"|format(cart.get_total()) }}</span>
@@ -83,10 +109,114 @@
 <script src="https://web.squarecdn.com/v1/square.js"></script>
 
 <script>
-// Square configuration
+// Constants
 const SQUARE_APP_ID = '{{ square_app_id }}';
 const SQUARE_LOCATION_ID = '{{ square_location_id }}';
-const cartTotal = {{ cart_total_cents }};
+const SUBTOTAL = {{ cart_total_cents }} / 100;
+
+let selectedShipping = {
+    method: 'DOM.RP',
+    service_name: 'Regular Parcel',
+    cost: 0
+};
+
+// Watch postal code field for changes to recalculate shipping
+document.getElementById('customer_zip').addEventListener('change', calculateShipping);
+document.getElementById('customer_zip').addEventListener('blur', calculateShipping);
+
+async function calculateShipping() {
+    const postalCode = document.getElementById('customer_zip').value.trim();
+    
+    if (!postalCode) {
+        document.getElementById('shipping-options-container').innerHTML = 
+            '<p class="info-text">Enter your postal code to calculate shipping rates...</p>';
+        return;
+    }
+    
+    document.getElementById('shipping-options-container').innerHTML = 
+        '<div class="loading-spinner"><p>Calculating shipping rates...</p></div>';
+    
+    try {
+        const response = await fetch('{{ url_for("services.get_shipping_rates") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                destination_postal_code: postalCode,
+                domestic_only: true
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (!data.success) {
+            document.getElementById('shipping-options-container').innerHTML = 
+                `<p class="error-text">Error: ${data.error}</p>`;
+            return;
+        }
+        
+        // Build shipping options HTML
+        let optionsHTML = '<div class="shipping-options">';
+        
+        data.options.forEach((option, index) => {
+            const isSelected = index === 0; // Default to first option
+            const radioId = `shipping-option-${option.service_code}`;
+            
+            optionsHTML += `
+                <label class="shipping-option">
+                    <input type="radio" name="shipping_method" value="${option.service_code}" 
+                           data-service-name="${option.service_name}" 
+                           data-cost="${option.price}"
+                           ${isSelected ? 'checked' : ''}
+                           onchange="updateSelectedShipping(this)">
+                    <div class="shipping-option-content">
+                        <div class="shipping-option-name">${option.service_name}</div>
+                        <div class="shipping-option-details">
+                            <span class="shipping-days">${option.guaranteed_days}</span>
+                            <span class="shipping-date">${option.est_delivery_date}</span>
+                        </div>
+                    </div>
+                    <div class="shipping-option-price">$${option.price.toFixed(2)}</div>
+                </label>
+            `;
+        });
+        
+        optionsHTML += '</div>';
+        
+        if (data.is_demo) {
+            optionsHTML += '<p class="info-note" style="margin-top: 1rem;">Demo rates: Add Canada Post API credentials for real-time pricing</p>';
+        }
+        
+        document.getElementById('shipping-options-container').innerHTML = optionsHTML;
+        
+        // Select first option by default
+        const firstOption = document.querySelector('input[name="shipping_method"]');
+        if (firstOption) {
+            updateSelectedShipping(firstOption);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        document.getElementById('shipping-options-container').innerHTML = 
+            '<p class="error-text">Error calculating shipping rates. Please try again.</p>';
+    }
+}
+
+function updateSelectedShipping(option) {
+    selectedShipping.method = option.value;
+    selectedShipping.service_name = option.dataset.serviceName;
+    selectedShipping.cost = parseFloat(option.dataset.cost);
+    
+    // Update display
+    document.getElementById('selected-shipping').style.display = 'block';
+    document.getElementById('selected-shipping-name').textContent = selectedShipping.service_name;
+    document.getElementById('selected-shipping-cost').textContent = selectedShipping.cost.toFixed(2);
+    document.getElementById('shipping-amount').textContent = '$' + selectedShipping.cost.toFixed(2);
+    
+    // Update total
+    const total = SUBTOTAL + selectedShipping.cost;
+    document.getElementById('total-amount').textContent = '$' + total.toFixed(2);
+}
 
 async function initializeSquare() {
     const web = await Square.Web.init({
@@ -106,7 +236,14 @@ async function initializeSquare() {
         // Validate form
         const form = document.getElementById('checkout-form');
         if (!form.checkValidity()) {
-            alert('Please fill in all required fields');
+            showNotification('Please fill in all required fields', 'error');
+            return;
+        }
+        
+        // Validate shipping selection
+        const shippingSelected = document.querySelector('input[name="shipping_method"]:checked');
+        if (!shippingSelected) {
+            showNotification('Please select a shipping method', 'error');
             return;
         }
         
@@ -117,12 +254,15 @@ async function initializeSquare() {
             processPayment(nonce);
         } else {
             const errorMessages = sourceResult.errors.map(e => e.message).join(', ');
-            alert('Error: ' + errorMessages);
+            showNotification('Error: ' + errorMessages, 'error');
         }
     });
 }
 
 function processPayment(nonce) {
+    const cartTotal = SUBTOTAL + selectedShipping.cost;
+    const cartTotalCents = Math.round(cartTotal * 100);
+    
     const customerData = {
         customer_name: document.getElementById('customer_name').value,
         customer_email: document.getElementById('customer_email').value,
@@ -131,8 +271,11 @@ function processPayment(nonce) {
         customer_city: document.getElementById('customer_city').value,
         customer_state: document.getElementById('customer_state').value,
         customer_zip: document.getElementById('customer_zip').value,
+        shipping_method: selectedShipping.method,
+        shipping_service_name: selectedShipping.service_name,
+        shipping_cost: selectedShipping.cost,
         nonce: nonce,
-        amount: cartTotal
+        amount: cartTotalCents
     };
     
     fetch('{{ url_for("services.process_payment") }}', {
@@ -160,6 +303,104 @@ function processPayment(nonce) {
 }
 
 // Initialize on page load
-document.addEventListener('DOMContentLoaded', initializeSquare);
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSquare();
+    // Don't automatically calculate shipping - wait for user to enter postal code
+});
 </script>
+
+<style>
+.shipping-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.shipping-option {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.shipping-option input[type="radio"] {
+    margin-right: 1rem;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.shipping-option:hover {
+    border-color: var(--accent-color);
+    background-color: #f8f9fa;
+}
+
+.shipping-option input[type="radio"]:checked + .shipping-option-content {
+    font-weight: 600;
+    color: var(--accent-color);
+}
+
+.shipping-option-content {
+    flex: 1;
+}
+
+.shipping-option-name {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.shipping-option-details {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.shipping-days {
+    font-weight: 500;
+}
+
+.shipping-option-price {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--accent-color);
+    min-width: 80px;
+    text-align: right;
+}
+
+.info-text {
+    font-size: 0.95rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.loading-spinner {
+    text-align: center;
+    padding: 2rem;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .shipping-option {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .shipping-option input[type="radio"] {
+        margin-bottom: 0.5rem;
+    }
+    
+    .shipping-option-price {
+        width: 100%;
+        text-align: left;
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid #e0e0e0;
+    }
+}
+</style>
 {% endblock %}

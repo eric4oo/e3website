@@ -42,8 +42,27 @@
             </table>
             
             <div class="order-total">
-                <strong>Total:</strong> <strong>${{ "%.2f"|format(order.total_amount) }}</strong>
+                <div class="order-total-row">
+                    <strong>Subtotal:</strong> <strong>${{ "%.2f"|format(order.subtotal) }}</strong>
+                </div>
+                <div class="order-total-row">
+                    <strong>Shipping:</strong> <strong>${{ "%.2f"|format(order.shipping_cost) }}</strong>
+                </div>
+                <div class="order-total-row total">
+                    <strong>Total:</strong> <strong>${{ "%.2f"|format(order.total_amount) }}</strong>
+                </div>
             </div>
+        </div>
+        
+        <div class="detail-section">
+            <h3>Shipping Method</h3>
+            <p>
+                <strong>Service:</strong> {{ order.shipping_service_name or 'Standard Shipping' }}<br>
+                <strong>Cost:</strong> ${{ "%.2f"|format(order.shipping_cost) }}
+                {% if order.tracking_number %}
+                <br><strong>Tracking Number:</strong> {{ order.tracking_number }}
+                {% endif %}
+            </p>
         </div>
         
         <div class="detail-section">
@@ -158,8 +177,19 @@
 .order-total {
     text-align: right;
     padding-top: 1rem;
-    font-size: 1.2rem;
     border-top: 2px solid #ddd;
+}
+
+.order-total-row {
+    padding: 0.5rem 0;
+    font-size: 1rem;
+}
+
+.order-total-row.total {
+    font-size: 1.2rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #ddd;
 }
 
 .info-box {

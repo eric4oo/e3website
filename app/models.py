@@ -67,6 +67,7 @@ class Service(db.Model):
     media_gallery = db.Column(db.JSON, default=list)  # Stores list of media: [{'type': 'photo/video', 'url': '...', 'caption': '...'}]
     bulk_pricing = db.Column(db.JSON, default=list)  # Stores bulk pricing tiers: [{'min_quantity': 10, 'price': 450}]
     variants = db.Column(db.JSON, default=list)  # Stores product variants: [{'name': 'Small', 'price': 100, 'description': '...', 'sku': '...', 'is_available': True}]
+    weight_kg = db.Column(db.Float, default=0.5)  # Approximate weight in kg for shipping (default 0.5kg)
     
     # Relationships
     service_options = db.relationship('ServiceOption', backref='service', lazy=True, cascade='all, delete-orphan')
@@ -158,6 +159,14 @@ class Order(db.Model):
     customer_city = db.Column(db.String(100))
     customer_state = db.Column(db.String(50))
     customer_zip = db.Column(db.String(10))
+    
+    # Shipping information
+    shipping_method = db.Column(db.String(50))  # e.g., 'DOM.RP' (Domestic Regular Parcel)
+    shipping_service_name = db.Column(db.String(255))  # e.g., 'Canada Post Regular Parcel'
+    shipping_cost = db.Column(db.Float, default=0)
+    tracking_number = db.Column(db.String(100))
+    
+    subtotal = db.Column(db.Float, nullable=False, default=0)
     total_amount = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(50), default='pending')  # pending, processing, completed, cancelled
     payment_status = db.Column(db.String(50), default='unpaid')  # unpaid, paid, failed
