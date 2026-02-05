@@ -15,12 +15,27 @@ class Service(db.Model):
     image_url = db.Column(db.String(500))
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    media_gallery = db.Column(db.JSON, default=list)  # Stores list of media: [{'type': 'photo/video', 'url': '...', 'caption': '...'}]
+    bulk_pricing = db.Column(db.JSON, default=list)  # Stores bulk pricing tiers: [{'min_quantity': 10, 'price': 450}]
     
     # Relationships
     service_options = db.relationship('ServiceOption', backref='service', lazy=True, cascade='all, delete-orphan')
     
     def __repr__(self):
         return f'<Service {self.name}>'
+    
+    def get_price_for_quantity(self, quantity):
+        """Get price based on quantity, considering bulk discounts."""
+        if not self.bulk_pricing:
+            return self.price_base
+        
+        applicable_tier = None
+        for tier in sorted(self.bulk_pricing, key=lambda x: x['min_quantity'], reverse=True):
+            if quantity >= tier['min_quantity']:
+                applicable_tier = tier
+                break
+        
+        return applicable_tier['price'] if applicable_tier else self.price_base
 
 
 class ServiceOption(db.Model):

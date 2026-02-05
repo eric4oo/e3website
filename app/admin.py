@@ -3,11 +3,15 @@ Admin Panel - Content Management System
 Allows editing of website content, design elements, and settings
 """
 
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_from_directory, current_app
 from functools import wraps
 import json
 import os
 from datetime import datetime
+from werkzeug.utils import secure_filename
+from slugify import slugify
+from app import db
+from app.models import Service
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
@@ -16,6 +20,17 @@ ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'admin123')
 
 # Content storage file
 CONTENT_FILE = os.path.join(os.path.dirname(__file__), '..', 'instance', 'content.json')
+
+# Media upload settings
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm', 'mov', 'avi'}
+
+def allowed_file(filename):
+    """Check if file is allowed."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Ensure uploads directory exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 def init_content_file():
@@ -181,3 +196,250 @@ def update_service(service_id):
 def get_preview_data():
     """Get content data for live preview."""
     return jsonify(load_content())
+
+# ==================== ITEM MANAGEMENT ROUTES ====================
+
+@admin_bp.route('/items')
+@login_required
+def manage_items():
+    """Item management page."""
+    categories = ['industrial_design', '3d_printing', 'laser_engraving']
+    return render_template('admin/items.html', categories=categories)
+
+
+@admin_bp.route('/api/items')
+@login_required
+def get_items():
+    """Get all items with optional category filter."""
+    category = request.args.get('category')
+    query = Service.query
+    
+    if category:
+        query = query.filter_by(category=category)
+    
+    items = query.all()
+    return jsonify([{
+        'id': item.id,
+        'name': item.name,
+        'description': item.description,
+        'price_base': item.price_base,
+        'category': item.category,
+        'image_url': item.image_url,
+        'is_active': item.is_active,
+        'media_gallery': item.media_gallery or [],
+        'bulk_pricing': item.bulk_pricing or [],
+        'created_at': item.created_at.isoformat()
+    } for item in items])
+
+
+@admin_bp.route('/api/items/<int:item_id>')
+@login_required
+def get_item(item_id):
+    """Get specific item details."""
+    item = Service.query.get_or_404(item_id)
+    return jsonify({
+        'id': item.id,
+        'name': item.name,
+        'slug': item.slug,
+        'description': item.description,
+        'long_description': item.long_description,
+        'price_base': item.price_base,
+        'category': item.category,
+        'image_url': item.image_url,
+        'is_active': item.is_active,
+        'media_gallery': item.media_gallery or [],
+        'bulk_pricing': item.bulk_pricing or [],
+        'created_at': item.created_at.isoformat()
+    })
+
+
+@admin_bp.route('/api/items', methods=['POST'])
+@login_required
+def create_item():
+    """Create a new item/service."""
+    try:
+        data = request.get_json()
+        
+        # Validate required fields
+        if not data.get('name') or not data.get('category'):
+            return jsonify({'success': False, 'error': 'Name and category are required'}), 400
+        
+        # Create slug from name
+        slug = slugify(data['name'])
+        
+        # Check if slug already exists
+        if Service.query.filter_by(slug=slug).first():
+            return jsonify({'success': False, 'error': 'Item with this name already exists'}), 400
+        
+        item = Service(
+            name=data['name'],
+            slug=slug,
+            description=data.get('description', ''),
+            long_description=data.get('long_description', ''),
+            price_base=float(data.get('price_base', 0)),
+            category=data['category'],
+            image_url=data.get('image_url', ''),
+            is_active=data.get('is_active', True),
+            media_gallery=data.get('media_gallery', []),
+            bulk_pricing=data.get('bulk_pricing', [])
+        )
+        
+        db.session.add(item)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Item "{item.name}" created successfully',
+            'item_id': item.id
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+@admin_bp.route('/api/items/<int:item_id>', methods=['PUT'])
+@login_required
+def update_item(item_id):
+    """Update an existing item."""
+    try:
+        item = Service.query.get_or_404(item_id)
+        data = request.get_json()
+        
+        # Update fields
+        if 'name' in data:
+            item.name = data['name']
+        if 'description' in data:
+            item.description = data['description']
+        if 'long_description' in data:
+            item.long_description = data['long_description']
+        if 'price_base' in data:
+            item.price_base = float(data['price_base'])
+        if 'category' in data:
+            item.category = data['category']
+        if 'image_url' in data:
+            item.image_url = data['image_url']
+        if 'is_active' in data:
+            item.is_active = data['is_active']
+        if 'media_gallery' in data:
+            item.media_gallery = data['media_gallery']
+        if 'bulk_pricing' in data:
+            item.bulk_pricing = data['bulk_pricing']
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Item "{item.name}" updated successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+@admin_bp.route('/api/items/<int:item_id>', methods=['DELETE'])
+@login_required
+def delete_item(item_id):
+    """Delete an item."""
+    try:
+        item = Service.query.get_or_404(item_id)
+        item_name = item.name
+        
+        db.session.delete(item)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Item "{item_name}" deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+@admin_bp.route('/api/items/<int:item_id>/upload-media', methods=['POST'])
+@login_required
+def upload_media(item_id):
+    """Upload media (photo/video) for an item."""
+    try:
+        item = Service.query.get_or_404(item_id)
+        
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        caption = request.form.get('caption', '')
+        
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        if not allowed_file(file.filename):
+            return jsonify({'success': False, 'error': 'File type not allowed'}), 400
+        
+        # Save file with secure filename
+        filename = secure_filename(f"{item_id}_{int(datetime.utcnow().timestamp())}_{file.filename}")
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(filepath)
+        
+        # Determine media type
+        ext = filename.rsplit('.', 1)[1].lower()
+        media_type = 'video' if ext in {'mp4', 'webm', 'mov', 'avi'} else 'photo'
+        
+        # Add to media gallery
+        media_url = f'/static/uploads/{filename}'
+        media_item = {
+            'type': media_type,
+            'url': media_url,
+            'caption': caption,
+            'uploaded_at': datetime.utcnow().isoformat()
+        }
+        
+        if not item.media_gallery:
+            item.media_gallery = []
+        
+        item.media_gallery.append(media_item)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Media uploaded successfully',
+            'media': media_item
+        }), 201
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400
+
+
+@admin_bp.route('/api/items/<int:item_id>/media/<int:media_index>', methods=['DELETE'])
+@login_required
+def delete_media(item_id, media_index):
+    """Delete media from an item."""
+    try:
+        item = Service.query.get_or_404(item_id)
+        
+        if not item.media_gallery or media_index >= len(item.media_gallery):
+            return jsonify({'success': False, 'error': 'Media not found'}), 404
+        
+        media = item.media_gallery[media_index]
+        
+        # Delete file from disk
+        filename = media['url'].split('/')[-1]
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        
+        # Remove from gallery
+        item.media_gallery.pop(media_index)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Media deleted successfully'
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 400

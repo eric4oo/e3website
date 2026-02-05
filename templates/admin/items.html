@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PropsWorks Admin - Item Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            color: #2c3e50;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(52, 152, 219, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+        
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .category-btn {
+            padding: 8px 16px;
+            border: 2px solid #bdc3c7;
+            background: white;
+            color: #2c3e50;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .category-btn.active {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .item-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .item-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+        }
+        
+        .item-image {
+            width: 100%;
+            height: 200px;
+            background: #ecf0f1;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #bdc3c7;
+            font-size: 14px;
+        }
+        
+        .item-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .item-content {
+            padding: 15px;
+        }
+        
+        .item-name {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 5px;
+            color: #2c3e50;
+            word-break: break-word;
+        }
+        
+        .item-category {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .item-description {
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .item-price {
+            font-size: 18px;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+        
+        .item-actions {
+            display: flex;
+            gap: 8px;
+            padding-top: 10px;
+            border-top: 1px solid #ecf0f1;
+        }
+        
+        .item-actions button {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .item-actions .edit-btn {
+            background: #3498db;
+            color: white;
+        }
+        
+        .item-actions .edit-btn:hover {
+            background: #2980b9;
+        }
+        
+        .item-actions .delete-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .item-actions .delete-btn:hover {
+            background: #c0392b;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .modal-header h2 {
+            font-size: 22px;
+            color: #2c3e50;
+        }
+        
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #7f8c8d;
+            transition: color 0.3s;
+        }
+        
+        .close-btn:hover {
+            color: #2c3e50;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.2);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .bulk-pricing-section, .media-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }
+        
+        .pricing-tier {
+            background: white;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+        
+        .pricing-tier input {
+            padding: 8px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        
+        .pricing-tier .delete-tier {
+            padding: 8px 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .pricing-tier .delete-tier:hover {
+            background: #c0392b;
+        }
+        
+        .media-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .media-item {
+            position: relative;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #ecf0f1;
+        }
+        
+        .media-item img,
+        .media-item video {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+        
+        .media-item-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .media-item:hover .media-item-overlay {
+            opacity: 1;
+        }
+        
+        .media-item-overlay button {
+            padding: 6px 10px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: block;
+            padding: 10px;
+            background: #ecf0f1;
+            border: 2px dashed #bdc3c7;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 13px;
+            color: #555;
+        }
+        
+        .file-input-label:hover {
+            background: #d5dbdb;
+            border-color: #3498db;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+        }
+        
+        .form-actions button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .form-actions .btn-primary {
+            background: #27ae60;
+        }
+        
+        .form-actions .btn-primary:hover {
+            background: #229954;
+        }
+        
+        .status-message {
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        
+        .icon {
+            display: inline-block;
+            margin-right: 5px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            color: #7f8c8d;
+        }
+        
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .pricing-tier {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>Item Management</h1>
+                <p style="color: #7f8c8d; font-size: 14px; margin-top: 5px;">Add, edit, and manage your products and services</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-primary btn-icon" onclick="openAddItemModal()">
+                    <span class="icon">+</span> Add New Item
+                </button>
+                <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">Back to Admin</a>
+            </div>
+        </div>
+        
+        <!-- Status Message -->
+        <div id="statusMessage" class="status-message"></div>
+        
+        <!-- Category Filter -->
+        <div class="category-filter">
+            <button class="category-btn active" onclick="filterByCategory(null)">All Items</button>
+            <button class="category-btn" onclick="filterByCategory('industrial_design')">Industrial Design</button>
+            <button class="category-btn" onclick="filterByCategory('3d_printing')">3D Printing</button>
+            <button class="category-btn" onclick="filterByCategory('laser_engraving')">Laser Engraving</button>
+        </div>
+        
+        <!-- Items Grid -->
+        <div id="itemsContainer" class="items-grid"></div>
+    </div>
+    
+    <!-- Add/Edit Item Modal -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Item</h2>
+                <button class="close-btn" onclick="closeItemModal()">&times;</button>
+            </div>
+            
+            <form id="itemForm" onsubmit="saveItem(event)">
+                <div class="status-message" id="formStatus"></div>
+                
+                <!-- Basic Information -->
+                <div class="section-title">Basic Information</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Item Name *</label>
+                        <input type="text" id="itemName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Category *</label>
+                        <select id="itemCategory" required>
+                            <option value="">Select a category</option>
+                            {% for cat in categories %}
+                            <option value="{{ cat }}">{{ cat.replace('_', ' ').title() }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Short Description *</label>
+                    <textarea id="itemDescription" required placeholder="Brief description of the item"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label>Long Description</label>
+                    <textarea id="itemLongDescription" placeholder="Detailed description, specifications, etc."></textarea>
+                </div>
+                
+                <!-- Pricing -->
+                <div class="section-title">Pricing</div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Base Price ($) *</label>
+                        <input type="number" id="itemPrice" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Image URL</label>
+                        <input type="url" id="itemImageUrl" placeholder="https://example.com/image.jpg">
+                    </div>
+                </div>
+                
+                <!-- Bulk Pricing -->
+                <div class="bulk-pricing-section">
+                    <div class="section-title">Bulk Pricing Tiers (Optional)</div>
+                    <p style="font-size: 13px; color: #555; margin-bottom: 15px;">Set reduced prices for orders above certain quantities</p>
+                    
+                    <div id="pricingTiers"></div>
+                    
+                    <button type="button" class="btn btn-secondary btn-small btn-icon" onclick="addPricingTier()">
+                        <span class="icon">+</span> Add Pricing Tier
+                    </button>
+                </div>
+                
+                <!-- Media Gallery -->
+                <div class="media-section">
+                    <div class="section-title">Media Gallery</div>
+                    
+                    <div class="form-group">
+                        <label>Upload Photos or Videos</label>
+                        <div class="file-input-wrapper">
+                            <label class="file-input-label" onclick="this.querySelector('input').click();">
+                                📁 Click to upload or drag and drop<br>
+                                <small>Supported: PNG, JPG, GIF, WEBP, MP4, WEBM</small>
+                                <input type="file" id="mediaFile" multiple accept="image/*,video/*" onchange="previewMediaFile(this)">
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Caption (optional)</label>
+                        <input type="text" id="mediaCaption" placeholder="Describe the uploaded media">
+                    </div>
+                    
+                    <button type="button" class="btn btn-secondary btn-small btn-icon" id="uploadMediaBtn" onclick="uploadMediaFile()">
+                        <span class="icon">⬆️</span> Upload Media
+                    </button>
+                    
+                    <div class="media-gallery" id="mediaGallery"></div>
+                </div>
+                
+                <!-- Status -->
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="itemActive" checked>
+                        Active (visible on website)
+                    </label>
+                </div>
+                
+                <!-- Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Item</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeItemModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        let currentItemId = null;
+        let currentCategory = null;
+        const categories = {{ categories | tojson }};
+        
+        // Load items on page load
+        document.addEventListener('DOMContentLoaded', loadItems);
+        
+        // Drag and drop for media
+        const mediaInput = document.getElementById('mediaFile');
+        const fileLabel = document.querySelector('.file-input-label');
+        
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileLabel.addEventListener(eventName, preventDefaults, false);
+        });
+        
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileLabel.addEventListener(eventName, () => {
+                fileLabel.style.background = '#d5dbdb';
+            });
+        });
+        
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileLabel.addEventListener(eventName, () => {
+                fileLabel.style.background = '#ecf0f1';
+            });
+        });
+        
+        fileLabel.addEventListener('drop', (e) => {
+            mediaInput.files = e.dataTransfer.files;
+            previewMediaFile(mediaInput);
+        });
+        
+        async function loadItems() {
+            try {
+                const url = currentCategory 
+                    ? `{{ url_for('admin.get_items') }}?category=${currentCategory}`
+                    : '{{ url_for("admin.get_items") }}';
+                
+                const response = await fetch(url);
+                const items = await response.json();
+                
+                const container = document.getElementById('itemsContainer');
+                
+                if (items.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <h3>No items found</h3>
+                            <p>Click "Add New Item" to get started</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = items.map(item => `
+                    <div class="item-card">
+                        <div class="item-image">
+                            ${item.image_url ? `<img src="${item.image_url}" alt="${item.name}">` : 'No image'}
+                        </div>
+                        <div class="item-content">
+                            <div class="item-name">${item.name}</div>
+                            <div class="item-category">${item.category.replace('_', ' ')}</div>
+                            <div class="item-description">${item.description}</div>
+                            <div class="item-price">$${item.price_base.toFixed(2)}</div>
+                            <div style="font-size: 12px; color: #7f8c8d; margin-bottom: 10px;">
+                                ${item.media_gallery.length} media • ${item.bulk_pricing.length} pricing tiers
+                            </div>
+                            <div class="item-actions">
+                                <button class="edit-btn" onclick="editItem(${item.id})">Edit</button>
+                                <button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                showStatus('Error loading items: ' + error.message, 'error');
+            }
+        }
+        
+        function filterByCategory(category) {
+            currentCategory = category;
+            
+            // Update button states
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadItems();
+        }
+        
+        function openAddItemModal() {
+            currentItemId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Item';
+            document.getElementById('itemForm').reset();
+            document.getElementById('pricingTiers').innerHTML = '';
+            document.getElementById('mediaGallery').innerHTML = '';
+            document.getElementById('mediaFile').value = '';
+            
+            const modal = document.getElementById('itemModal');
+            modal.classList.add('active');
+        }
+        
+        function closeItemModal() {
+            document.getElementById('itemModal').classList.remove('active');
+        }
+        
+        async function editItem(itemId) {
+            try {
+                const response = await fetch(`/admin/api/items/${itemId}`);
+                const item = await response.json();
+                
+                currentItemId = itemId;
+                document.getElementById('modalTitle').textContent = `Edit: ${item.name}`;
+                document.getElementById('itemName').value = item.name;
+                document.getElementById('itemCategory').value = item.category;
+                document.getElementById('itemDescription').value = item.description;
+                document.getElementById('itemLongDescription').value = item.long_description || '';
+                document.getElementById('itemPrice').value = item.price_base;
+                document.getElementById('itemImageUrl').value = item.image_url || '';
+                document.getElementById('itemActive').checked = item.is_active;
+                
+                // Load pricing tiers
+                document.getElementById('pricingTiers').innerHTML = '';
+                if (item.bulk_pricing && item.bulk_pricing.length > 0) {
+                    item.bulk_pricing.forEach(tier => {
+                        addPricingTier(tier.min_quantity, tier.price);
+                    });
+                }
+                
+                // Load media gallery
+                document.getElementById('mediaGallery').innerHTML = '';
+                if (item.media_gallery && item.media_gallery.length > 0) {
+                    item.media_gallery.forEach((media, index) => {
+                        displayMediaItem(media, itemId, index);
+                    });
+                }
+                
+                document.getElementById('itemModal').classList.add('active');
+            } catch (error) {
+                showStatus('Error loading item: ' + error.message, 'error');
+            }
+        }
+        
+        function addPricingTier(minQty = '', price = '') {
+            const tiersContainer = document.getElementById('pricingTiers');
+            const tier = document.createElement('div');
+            tier.className = 'pricing-tier';
+            tier.innerHTML = `
+                <div>
+                    <small>Min Quantity</small>
+                    <input type="number" class="min-qty" value="${minQty}" min="1" placeholder="10">
+                </div>
+                <div>
+                    <small>Price ($)</small>
+                    <input type="number" class="tier-price" value="${price}" min="0" step="0.01" placeholder="450.00">
+                </div>
+                <button type="button" class="delete-tier" onclick="this.parentElement.remove()">Remove</button>
+            `;
+            tiersContainer.appendChild(tier);
+        }
+        
+        function previewMediaFile(input) {
+            // Just update the label to show file selected
+            if (input.files && input.files[0]) {
+                document.querySelector('.file-input-label').innerHTML = `
+                    ✓ ${input.files[0].name} selected<br>
+                    <small>Click "Upload Media" to add to item</small>
+                `;
+            }
+        }
+        
+        async function uploadMediaFile() {
+            if (!currentItemId) {
+                showStatus('Please save the item first before uploading media', 'error');
+                return;
+            }
+            
+            const fileInput = document.getElementById('mediaFile');
+            const caption = document.getElementById('mediaCaption').value;
+            
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showStatus('Please select a file to upload', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('caption', caption);
+            
+            try {
+                const response = await fetch(
+                    `/admin/api/items/${currentItemId}/upload-media`,
+                    {
+                        method: 'POST',
+                        body: formData
+                    }
+                );
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayMediaItem(result.media, currentItemId, document.querySelectorAll('.media-item').length);
+                    fileInput.value = '';
+                    document.getElementById('mediaCaption').value = '';
+                    document.querySelector('.file-input-label').innerHTML = `
+                        📁 Click to upload or drag and drop<br>
+                        <small>Supported: PNG, JPG, GIF, WEBP, MP4, WEBM</small>
+                    `;
+                    showFormStatus('Media uploaded successfully', 'success');
+                } else {
+                    showFormStatus('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showFormStatus('Error uploading media: ' + error.message, 'error');
+            }
+        }
+        
+        function displayMediaItem(media, itemId, index) {
+            const gallery = document.getElementById('mediaGallery');
+            const mediaItem = document.createElement('div');
+            mediaItem.className = 'media-item';
+            const isVideo = media.type === 'video';
+            
+            mediaItem.innerHTML = `
+                ${isVideo ? `<video src="${media.url}"></video>` : `<img src="${media.url}" alt="${media.caption || 'Media'}">`}
+                <div class="media-item-overlay">
+                    <button type="button" onclick="deleteMediaFile(${itemId}, ${index})">Delete</button>
+                </div>
+            `;
+            
+            gallery.appendChild(mediaItem);
+        }
+        
+        async function deleteMediaFile(itemId, mediaIndex) {
+            if (!confirm('Are you sure you want to delete this media?')) return;
+            
+            try {
+                const response = await fetch(
+                    `/admin/api/items/${itemId}/media/${mediaIndex}`,
+                    { method: 'DELETE' }
+                );
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.querySelectorAll('.media-item')[mediaIndex].remove();
+                    showFormStatus('Media deleted', 'success');
+                } else {
+                    showFormStatus('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showFormStatus('Error deleting media: ' + error.message, 'error');
+            }
+        }
+        
+        async function saveItem(event) {
+            event.preventDefault();
+            
+            try {
+                const pricingTiers = [];
+                document.querySelectorAll('.pricing-tier').forEach(tier => {
+                    const minQty = parseInt(tier.querySelector('.min-qty').value);
+                    const price = parseFloat(tier.querySelector('.tier-price').value);
+                    if (minQty && price >= 0) {
+                        pricingTiers.push({ min_quantity: minQty, price: price });
+                    }
+                });
+                
+                // For existing items, preserve the current media gallery
+                let mediaGallery = [];
+                if (currentItemId) {
+                    const itemResponse = await fetch(`/admin/api/items/${currentItemId}`);
+                    const existingItem = await itemResponse.json();
+                    mediaGallery = existingItem.media_gallery || [];
+                }
+                
+                const data = {
+                    name: document.getElementById('itemName').value,
+                    category: document.getElementById('itemCategory').value,
+                    description: document.getElementById('itemDescription').value,
+                    long_description: document.getElementById('itemLongDescription').value,
+                    price_base: parseFloat(document.getElementById('itemPrice').value),
+                    image_url: document.getElementById('itemImageUrl').value,
+                    is_active: document.getElementById('itemActive').checked,
+                    bulk_pricing: pricingTiers,
+                    media_gallery: mediaGallery
+                };
+                
+                const url = currentItemId 
+                    ? `/admin/api/items/${currentItemId}`
+                    : '/admin/api/items';
+                
+                const method = currentItemId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    if (!currentItemId) {
+                        currentItemId = result.item_id;
+                        document.getElementById('modalTitle').textContent = `Edit: ${data.name}`;
+                        showFormStatus('Item created! You can now upload media.', 'success');
+                    } else {
+                        showFormStatus('Item updated successfully', 'success');
+                        setTimeout(() => {
+                            closeItemModal();
+                            loadItems();
+                        }, 1500);
+                    }
+                } else {
+                    showFormStatus('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showFormStatus('Error saving item: ' + error.message, 'error');
+            }
+        }
+        
+        async function deleteItem(itemId) {
+            // Get item name from card
+            const itemName = event.target.closest('.item-card').querySelector('.item-name').textContent;
+            
+            if (!confirm(`Delete "${itemName}"? This cannot be undone.`)) return;
+            
+            try {
+                const response = await fetch(
+                    `/admin/api/items/${itemId}`,
+                    { method: 'DELETE' }
+                );
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus('Item deleted successfully', 'success');
+                    loadItems();
+                } else {
+                    showStatus('Error: ' + result.error, 'error');
+                }
+            } catch (error) {
+                showStatus('Error deleting item: ' + error.message, 'error');
+            }
+        }
+        
+        function showStatus(message, type) {
+            const el = document.getElementById('statusMessage');
+            el.textContent = message;
+            el.className = `status-message ${type}`;
+            setTimeout(() => el.className = 'status-message', 5000);
+        }
+        
+        function showFormStatus(message, type) {
+            const el = document.getElementById('formStatus');
+            el.textContent = message;
+            el.className = `status-message ${type}`;
+            setTimeout(() => el.className = 'status-message', 5000);
+        }
+        
+        // Close modal on outside click
+        document.getElementById('itemModal').addEventListener('click', e => {
+            if (e.target.id === 'itemModal') closeItemModal();
+        });
+    </script>
+</body>
+</html>

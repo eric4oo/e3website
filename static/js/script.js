@@ -66,9 +66,16 @@ function updateCartCount() {
     const cartCount = document.getElementById('cart-count');
     if (!cartCount) return;
     
-    // Get cart count from localStorage or API
-    const count = localStorage.getItem('cart_count') || '0';
-    cartCount.textContent = count;
+    // Get cart count from API
+    fetch('/services/cart-count')
+        .then(response => response.json())
+        .then(data => {
+            cartCount.textContent = data.cart_count;
+        })
+        .catch(error => {
+            console.error('Error fetching cart count:', error);
+            cartCount.textContent = '0';
+        });
 }
 
 // Smooth scrolling for anchor links

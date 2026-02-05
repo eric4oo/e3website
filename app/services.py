@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify
+from flask import Blueprint, render_template, request, jsonify, make_response
 from app.models import Service, Cart, CartItem, Order, OrderItem, db
 from app.payment import get_square_processor
 import uuid
@@ -88,12 +88,17 @@ def add_to_cart():
     db.session.add(cart_item)
     db.session.commit()
     
-    return jsonify({
+    response_data = {
         'success': True,
         'message': f'{service.name} added to cart',
         'cart_total': cart.get_total(),
         'cart_count': len(cart.items)
-    })
+    }
+    
+    # Create response with cookie
+    response = make_response(jsonify(response_data))
+    response.set_cookie('cart_session', session_id, max_age=2592000, secure=False, httponly=False, samesite='Lax')
+    return response
 
 
 @services_bp.route('/cart')
@@ -107,6 +112,22 @@ def view_cart():
         cart = Cart.query.filter_by(session_id=session_id).first()
     
     return render_template('services/cart.html', cart=cart, content=content)
+
+
+@services_bp.route('/cart-count', methods=['GET'])
+def get_cart_count():
+    """Get the current cart item count."""
+    session_id = request.cookies.get('cart_session')
+    cart_count = 0
+    
+    if session_id:
+        cart = Cart.query.filter_by(session_id=session_id).first()
+        if cart:
+            cart_count = len(cart.items)
+    
+    return jsonify({
+        'cart_count': cart_count
+    })
 
 
 @services_bp.route('/checkout')
