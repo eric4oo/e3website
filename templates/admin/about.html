@@ -308,12 +308,6 @@
                     <input type="email" id="contactEmail" placeholder="info@example.com" value="{{ content.get('contact_email', '') }}">
                 </div>
 
-                <div class="form-group">
-                    <label for="contactWebsite">Website URL</label>
-                    <input type="url" id="contactWebsite" placeholder="www.example.com" value="{{ content.get('contact_website', '') }}">
-                </div>
-            </div>
-
             <!-- Save Section -->
             <div class="content-section">
                 <div class="form-actions">
@@ -332,7 +326,6 @@
         const aboutPerfectForInput = document.getElementById('aboutPerfectFor');
         const aboutProcessInput = document.getElementById('aboutProcess');
         const contactEmailInput = document.getElementById('contactEmail');
-        const contactWebsiteInput = document.getElementById('contactWebsite');
         
         function saveAboutContent() {
             const data = {
@@ -342,8 +335,7 @@
                 about_why: aboutWhyInput.value,
                 about_perfect_for: aboutPerfectForInput.value,
                 about_process: aboutProcessInput.value,
-                contact_email: contactEmailInput.value,
-                contact_website: contactWebsiteInput.value
+                contact_email: contactEmailInput.value
             };
             
             const statusMessage = document.getElementById('statusMessage');

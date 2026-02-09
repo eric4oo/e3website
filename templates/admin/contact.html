@@ -228,12 +228,6 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="contactWebsite">Website URL</label>
-                    <input type="url" id="contactWebsite" placeholder="www.example.com" value="{{ content.get('contact_website', '') }}">
-                    <small>Enter without https:// (e.g., www.example.com)</small>
-                </div>
-
-                <div class="form-group">
                     <label for="instagramHandle">Instagram Handle</label>
                     <input type="text" id="instagramHandle" placeholder="e3studio" value="{{ content.get('instagram_handle', '') }}">
                     <small>Enter your Instagram username without the @ symbol (e.g., e3studio)</small>
@@ -264,7 +258,6 @@
         const contactIntroInput = document.getElementById('contactIntro');
         const contactMessageInput = document.getElementById('contactMessage');
         const contactEmailInput = document.getElementById('contactEmail');
-        const contactWebsiteInput = document.getElementById('contactWebsite');
         const instagramHandleInput = document.getElementById('instagramHandle');
         
         function saveContactContent() {
@@ -273,7 +266,6 @@
                 contact_intro: contactIntroInput.value,
                 contact_message: contactMessageInput.value,
                 contact_email: contactEmailInput.value,
-                contact_website: contactWebsiteInput.value,
                 instagram_handle: instagramHandleInput.value
             };
             

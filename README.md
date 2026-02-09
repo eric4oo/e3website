@@ -395,7 +395,6 @@ Contributions are welcome! Please feel free to submit issues and enhancement req
 For issues and questions:
 - Create an issue in the repository
 - Email: support@propsworks.com
-- Phone: (555) 123-4567
 
 ---
 

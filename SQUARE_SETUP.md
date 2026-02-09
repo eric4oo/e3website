@@ -258,7 +258,6 @@ export SQUARE_LOCATION_ID=L...
 ### Support Contact
 
 - PropsWorks Support: support@propsworks.com
-- Phone: (555) 123-4567
 
 ---
 

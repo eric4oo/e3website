@@ -94,7 +94,6 @@ Description: We create custom brackets tailored to your specifications...
 [Contact for Quote]
 
 For more information or to request a quote:
-Phone: (555) 123-4567
 Email: info@propsworks.com
 or use the contact form below
 ```

@@ -26,7 +26,7 @@
             {% endif %}
         </ul>
         
-        <h3>Why Choose PropsWorks?</h3>
+        <h3>Why Choose E3 Studio?</h3>
         <ul>
             {% if content and content.get('about_why') %}
                 {% for why_line in content.about_why.strip().split('\n') %}
@@ -89,16 +89,7 @@
             {% else %}
                 <li>Email: <strong>info@propsworks.com</strong></li>
             {% endif %}
-            {% if content and content.get('contact_phone') %}
-                <li>Phone: <strong>{{ content.contact_phone }}</strong></li>
-            {% else %}
-                <li>Phone: <strong>(555) 123-4567</strong></li>
-            {% endif %}
-            {% if content and content.get('contact_website') %}
-                <li>Web: <strong>{{ content.contact_website }}</strong></li>
-            {% else %}
-                <li>Web: <strong>www.propsworks.com</strong></li>
-            {% endif %}
+
         </ul>
     </div>
 </section>

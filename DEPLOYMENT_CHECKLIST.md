@@ -28,7 +28,6 @@
 
 ### 4. Contact Information
 - [ ] Update contact email (currently: info@propsworks.com)
-- [ ] Update phone number (currently: (555) 123-4567)
 - [ ] Add contact form or email integration
 - [ ] Setup email notifications for new orders
 

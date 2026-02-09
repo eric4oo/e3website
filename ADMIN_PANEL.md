@@ -148,7 +148,6 @@ Content is stored in `instance/content.json` with the following structure:
     "text": "#2c3e50"
   },
   "contact_email": "info@propsworks.com",
-  "contact_phone": "(555) 123-4567",
   "last_updated": "2026-02-05T10:30:00.000000"
 }
 ```

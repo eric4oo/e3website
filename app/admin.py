@@ -72,7 +72,6 @@ def init_content_file():
                 'text': '#2c3e50'
             },
             'contact_email': 'info@propsworks.com',
-            'contact_website': 'www.propsworks.com',
             'instagram_handle': '',
             'last_updated': datetime.now().isoformat()
         }
@@ -368,8 +367,6 @@ def update_about_content():
             content['about_process'] = data['about_process']
         if 'contact_email' in data:
             content['contact_email'] = data['contact_email']
-        if 'contact_website' in data:
-            content['contact_website'] = data['contact_website']
         if 'instagram_handle' in data:
             content['instagram_handle'] = data['instagram_handle']
         
@@ -404,8 +401,6 @@ def update_contact_content():
             content['contact_message'] = data['contact_message']
         if 'contact_email' in data:
             content['contact_email'] = data['contact_email']
-        if 'contact_website' in data:
-            content['contact_website'] = data['contact_website']
         if 'instagram_handle' in data:
             content['instagram_handle'] = data['instagram_handle']
         

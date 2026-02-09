@@ -21,16 +21,6 @@
                     </p>
                     <small>We typically respond within 24 business hours</small>
                 </div>
-                
-                <div class="contact-item">
-                    <h3>🌐 Website</h3>
-                    <p>
-                        <a href="https://{{ content.contact_website if content else 'www.propsworks.com' }}" target="_blank">
-                            {{ content.contact_website if content else 'www.propsworks.com' }}
-                        </a>
-                    </p>
-                    <small>Visit our main website for more information</small>
-                </div>
 
                 {% if content and content.get('instagram_handle') %}
                 <div class="contact-item">

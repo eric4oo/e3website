@@ -13,12 +13,12 @@
     "background": "#f8f9fa",
     "text": "#2c3e50"
   },
-  "contact_email": "e3studioshop@gmail.com",
-  "contact_phone": "(226) 347-5866",
-  "contact_website": "www.propsworks.com",
+  "contact_email": "e3studioco@gmail.com",
+  "contact_phone": "",
+  "contact_website": "",
   "hero_subtitle": "Professional Maker Services",
   "hero_title": "Welcome to E3 Studio!",
-  "last_updated": "2026-02-05T15:17:13.877667",
+  "last_updated": "2026-02-09T13:51:40.446360",
   "services": {
     "3d_printing": {
       "description": "High-quality 3D printing services",
@@ -37,5 +37,9 @@
     }
   },
   "site_tagline": "Custom Props & Industrial Design",
-  "site_title": "E3 Studio"
+  "site_title": "E3 Studio",
+  "contact_title": "Get In Touch",
+  "contact_intro": "Have a project in mind? We would love to hear from you!",
+  "contact_message": "For inquiries and quotes, please contact us.",
+  "instagram_handle": ""
 }
