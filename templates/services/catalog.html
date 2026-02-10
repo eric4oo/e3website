@@ -14,19 +14,36 @@
                class="category-btn {% if not selected_category %}active{% endif %}">
                 All Services
             </a>
-            <a href="{{ url_for('services.catalog', category='industrial_design') }}" 
-               class="category-btn {% if selected_category == 'industrial_design' %}active{% endif %}">
+            <a href="{{ url_for('services.catalog', category='industrial-design') }}" 
+               class="category-btn {% if selected_category == 'industrial-design' %}active{% endif %}">
                 Industrial Design
             </a>
-            <a href="{{ url_for('services.catalog', category='3d_printing') }}" 
-               class="category-btn {% if selected_category == '3d_printing' %}active{% endif %}">
+            <a href="{{ url_for('services.catalog', category='3d-printing') }}" 
+               class="category-btn {% if selected_category == '3d-printing' %}active{% endif %}">
                 3D Printing
             </a>
-            <a href="{{ url_for('services.catalog', category='laser_engraving') }}" 
-               class="category-btn {% if selected_category == 'laser_engraving' %}active{% endif %}">
+            <a href="{{ url_for('services.catalog', category='laser-engraving') }}" 
+               class="category-btn {% if selected_category == 'laser-engraving' %}active{% endif %}">
                 Laser Engraving
             </a>
         </div>
+        
+        {% if parent_category and parent_category.children %}
+        <div class="subcategory-buttons">
+            <a href="{{ url_for('services.catalog', category=parent_category.slug) }}" 
+               class="subcategory-btn {% if not selected_subcategory %}active{% endif %}">
+                All {{ parent_category.name }}
+            </a>
+            {% for subcategory in parent_category.children %}
+                {% if subcategory.is_active %}
+                <a href="{{ url_for('services.catalog', category=parent_category.slug, subcategory=subcategory.slug) }}" 
+                   class="subcategory-btn {% if selected_subcategory == subcategory.slug %}active{% endif %}">
+                    {{ subcategory.name }}
+                </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 </section>
 

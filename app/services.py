@@ -46,15 +46,33 @@ def load_content():
 @services_bp.route('/')
 def catalog():
     """Display all services/products."""
-    category_id = request.args.get('category_id')
+    category_param = request.args.get('category')
+    subcategory_param = request.args.get('subcategory')
     content = load_content()
     categories = load_categories()
     
-    if category_id:
-        try:
-            category_id = int(category_id)
-            services = Service.query.filter_by(category_id=category_id, is_active=True).all()
-        except (ValueError, TypeError):
+    selected_category = None
+    selected_subcategory = None
+    parent_category = None
+    
+    if subcategory_param:
+        # Filtering by subcategory
+        subcategory = Category.query.filter_by(slug=subcategory_param, is_active=True).first()
+        if subcategory:
+            services = Service.query.filter_by(category_id=subcategory.id, is_active=True).all()
+            selected_subcategory = subcategory_param
+            parent_category = subcategory.parent
+            selected_category = parent_category.slug if parent_category else None
+        else:
+            services = Service.query.filter_by(is_active=True).all()
+    elif category_param:
+        # Find category by slug
+        category = Category.query.filter_by(slug=category_param, parent_id=None, is_active=True).first()
+        if category:
+            services = Service.query.filter_by(category_id=category.id, is_active=True).all()
+            selected_category = category_param
+            parent_category = category
+        else:
             services = Service.query.filter_by(is_active=True).all()
     else:
         services = Service.query.filter_by(is_active=True).all()
@@ -62,7 +80,9 @@ def catalog():
     return render_template('services/catalog.html', 
                          services=services,
                          categories=categories,
-                         selected_category=category_id,
+                         selected_category=selected_category,
+                         selected_subcategory=selected_subcategory,
+                         parent_category=parent_category,
                          content=content)
 
 
