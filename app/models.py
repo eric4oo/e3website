@@ -63,6 +63,7 @@ class Service(db.Model):
     sub_category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)  # Optional sub-category (e.g., CAD)
     image_url = db.Column(db.String(500))
     is_active = db.Column(db.Boolean, default=True)
+    is_featured = db.Column(db.Boolean, default=False)  # Toggle to feature in homepage
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     media_gallery = db.Column(db.JSON, default=list)  # Stores list of media: [{'type': 'photo/video', 'url': '...', 'caption': '...'}]
     bulk_pricing = db.Column(db.JSON, default=list)  # Stores bulk pricing tiers: [{'min_quantity': 10, 'price': 450}]

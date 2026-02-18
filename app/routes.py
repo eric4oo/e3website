@@ -1,6 +1,8 @@
 from flask import Blueprint, render_template
 import json
 import os
+from app import db
+from app.models import Service
 
 main_bp = Blueprint('main', __name__)
 
@@ -16,7 +18,8 @@ def load_content():
 def index():
     """Home page route."""
     content = load_content()
-    return render_template('index.html', title='Home', content=content)
+    featured_items = Service.query.filter_by(is_featured=True, is_active=True).all()
+    return render_template('index.html', title='Home', content=content, featured_items=featured_items)
 
 @main_bp.route('/about')
 def about():

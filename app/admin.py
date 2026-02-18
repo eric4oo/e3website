@@ -553,6 +553,8 @@ def update_item(item_id):
             item.image_url = data['image_url']
         if 'is_active' in data:
             item.is_active = data['is_active']
+        if 'is_featured' in data:
+            item.is_featured = data['is_featured']
         if 'media_gallery' in data:
             item.media_gallery = data['media_gallery']
         if 'bulk_pricing' in data:

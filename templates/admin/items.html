@@ -768,6 +768,14 @@
                     </label>
                 </div>
                 
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="itemFeatured">
+                        Featured (display on homepage)
+                    </label>
+                    <small style="color: #7f8c8d; display: block; margin-top: 5px;">Featured items appear in a highlighted section on the homepage</small>
+                </div>
+                
                 <!-- Actions -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save Item</button>
@@ -1020,6 +1028,7 @@
                 
                 document.getElementById('itemImageUrl').value = item.image_url || '';
                 document.getElementById('itemActive').checked = item.is_active;
+                document.getElementById('itemFeatured').checked = item.is_featured || false;
                 
                 // Load pricing tiers
                 document.getElementById('pricingTiers').innerHTML = '';
@@ -1285,6 +1294,7 @@
                     price_base: price_base,
                     image_url: document.getElementById('itemImageUrl').value,
                     is_active: document.getElementById('itemActive').checked,
+                    is_featured: document.getElementById('itemFeatured').checked,
                     bulk_pricing: pricingTiers,
                     variants: variants,
                     media_gallery: mediaGallery

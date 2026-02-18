@@ -32,6 +32,38 @@
     </div>
 </section>
 
+<section class="featured-items">
+    <h2>Featured Items</h2>
+    <div class="featured-items-scroll">
+        {% if featured_items %}
+            {% for item in featured_items %}
+                <div class="featured-item-card">
+                    {% if item.image_url %}
+                        <div class="featured-item-image">
+                            <img src="{{ item.image_url }}" alt="{{ item.name }}" loading="lazy">
+                        </div>
+                    {% else %}
+                        <div class="featured-item-image placeholder">
+                            <span>📦</span>
+                        </div>
+                    {% endif %}
+                    <div class="featured-item-content">
+                        <h3>{{ item.name }}</h3>
+                        <p class="featured-item-category">{{ item.category_obj.name }}</p>
+                        <p class="featured-item-description">{{ item.description }}</p>
+                        {% if item.price_base %}
+                            <p class="featured-item-price">${{ "%.2f"|format(item.price_base) }}</p>
+                        {% else %}
+                            <p class="featured-item-price quote">Contact for Quote</p>
+                        {% endif %}
+                        <a href="{{ url_for('services.service_detail', slug=item.slug) }}" class="featured-item-btn">View Details</a>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+</section>
+
 <section class="why-us">
     <h2>Why Choose E3 Studio?</h2>
     <div class="features-grid">
